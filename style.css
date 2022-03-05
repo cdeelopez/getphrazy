@@ -1,0 +1,197 @@
+body {
+    font-family: 'Fredoka', sans-serif;
+    text-align: center;
+}
+h1 {
+    font-family: 'Special Elite', cursive;
+    color: #3572be;
+    font-size: 26px;
+    margin-top: 16px;
+}
+h1 span {
+    font-size: 1em;
+    margin-right: 8px;
+}
+h1 strong {
+    font-size: 1.6em;
+}
+.main-section {
+    margin: 16px;
+}
+.guessbox {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.guessbox div {
+    display: flex;
+}
+.guessbox span {
+    width: 30px;
+    height: 36px;
+    margin: 8px 1px;
+    font-size: 22px;
+    background: #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.guessbox .has-space {
+    margin-left: 30px;
+}
+.guess-action {
+    display: inline-block;
+    margin: 24px auto 0;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 4px;
+    background: #3572be;
+    padding: 6px 24px;
+    color: white;
+    cursor: pointer;
+}
+.guess-action:disabled,
+.guess-action[disabled]{
+    opacity: 0.3;
+    cursor: not-allowed;
+    color: #dccccc;
+}
+
+.popup {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 100;
+    display: none;
+}
+.popup .content {
+    max-width: 90vw;
+    min-width: 300px;
+    background: white;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    padding: 24px;
+    border-radius: 4px;
+}
+.popup .guessbox {
+    margin-top: 8px;
+}
+.guessbox input {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    font-size: 18px;
+    font-family: 'Fredoka', sans-serif;
+    text-align: center;
+    text-transform: uppercase;
+    border: 1px solid rgb(168, 166, 166);
+    border-radius: 4px;
+    transition: all 0.3s ease-in-out;
+}
+.guessbox.wrong-guess input,
+.guessbox input.empty {
+    background: #d21818;
+}
+.popup h2, .popup h3 {
+    margin: 0;
+}
+.error-popup p {
+    letter-spacing: 1px;
+    margin-top: 8px;
+}
+.popup h3 {
+    font-size: 20px;
+}
+.popup h2 {
+    font-family: 'Rock Salt', cursive;
+    display: inline-block;
+    width: 48px;
+    border-radius: 4px;
+    color: white;
+    margin-top: 8px;
+}
+.popup h2:before {
+    font-size: 20px;
+    line-height: 1.2em;
+}
+.popup h2:before,
+.stats .chart-labels span:before {
+    display: inline-block;
+    margin: 8px;
+}
+.popup .grade-a,
+.stats .chart span:nth-child(1) {
+    background: #2b922b;
+}
+.popup .grade-a:before {
+    content: "A";
+}
+.popup .grade-b,
+.stats .chart span:nth-child(2) {
+    background: #66be1e;
+}
+.popup .grade-b:before {
+    content: "B";
+}
+.popup .grade-c,
+.stats .chart span:nth-child(3) {
+    background: #d7d72b;
+}
+.popup .grade-c:before {
+    content: "C";
+}
+.popup .grade-d,
+.stats .chart span:nth-child(4) {
+    background: rgb(243, 166, 22);
+}
+.popup .grade-d:before {
+    content: "D";
+}
+.popup h2.grade-f {
+    width: 100px;
+}
+.popup .grade-f,
+.stats .chart span:nth-child(5) {
+    background: #d21818;
+}
+.popup .grade-f:before {
+    content: "Failed";
+}
+.popup .stats .grade-f:before {
+    content: "F";
+}
+
+.stats .chart{
+    width: 100%;
+    height: 120px;
+    margin-top: 16px;
+}
+.stats .chart span {
+    height: 120px;
+    align-self: end;
+    opacity: 0.7;
+    line-height: 30px;
+    display: flex;
+    align-items: end;
+    justify-content: center;
+}
+.stats .chart,
+.stats .chart-labels {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: 1fr;s
+    align-content: center;
+    font-size: 11px;
+    color: white;
+}
+.stats .chart-labels {
+    font-family: 'Rock Salt', cursive;
+}
