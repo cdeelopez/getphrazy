@@ -17,7 +17,7 @@ const setupGame = (guessme) => {
 }
 $(function() {
     // todo get one per day
-    const guessme = phrases[1].toUpperCase()
+    const guessme = phrases[4].toUpperCase()
     const guessmeLetters = guessme.replaceAll(' ', '')
     const lettersCnt = guessmeLetters.length
     let counter = 0
@@ -192,15 +192,23 @@ const onGuess = (guessCnt) => {
 
 const onGuessSubmit = (answer) => {
     let guess = ''
+    let invalid = false
     $(".guess-popup .guessbox span").each(function() {
         if($(this).find("input").length) {
             if($(this).find("input").val() === "") {
-                $(this).find("input:text[value=]").addClass("empty");
-                return
+                $(this).find("input[type='text']").each((i, el) => {
+                    if(!$(el).val()) $(el).addClass("empty")
+                    setTimeout(() => {
+                        $(".guess-popup .guessbox input.empty").first().focus()
+                        $(".guess-popup .guessbox input").removeClass("empty")
+                    }, 300)
+                })
+                invalid = true
             }
             guess += $(this).find("input").val() || ""
         } else guess += $(this).text() || ""
     })
+    if (invalid) return
     if(guess.toUpperCase() == answer) {
         return true
     } 
