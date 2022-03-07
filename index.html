@@ -12,10 +12,26 @@
         <link rel="stylesheet" type="text/css" href="style.css">
     </head>
     <body>
-        <h1><span>get</span><strong>Phrazy</strong></h1>
+        <h1 class="title"><span>get</span><strong>Phrazy</strong></h1>
         <div class="main-section">
             <div class="guessbox"></div>
+            <div class="guess-chances">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="progress">
+                <div class="progress-bar">
+                    <span class="prog-d"></span>
+                    <span class="prog-c"></span>
+                    <span class="prog-b"></span>
+                    <span class="prog-a"></span>
+                </div>
+                <div class="progress-bar-cover"></div>
+                <div class="progress-bar-timer"></div>
+            </div>
             <button type="button" class="guess-action guess-now">I'd Like to Guess</button>
+            <button type="button" class="guess-action guess-check">Submit</button>
             <div class="popup error-popup">
                 <div class="content">
                     <h2></h2>
@@ -28,6 +44,18 @@
                     <h3>Good Guess!</h3>
                     <h2></h2>
                     <div class="stats"></div>
+                </div>
+            </div>
+            <div class="popup instructions">
+                <h1 class="title"><span>get</span><strong>Phrazy</strong></h1>
+                <div class="content">
+                    <ol>
+                        <li>Letters will appear every 5 seconds. </li>
+                        <li>Once you start guessing, there's no turning back!</li>
+                        <li>You have 3 chances to guess the right phraze.</li>
+                        <li>The sooner you guess, the higher the grade!</li>
+                    </ol>
+                    <button type="button" class="guess-action play-now">Play Now!</button>
                 </div>
             </div>
         </div>
