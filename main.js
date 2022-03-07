@@ -17,20 +17,22 @@ const setupGame = (guessme) => {
 }
 $(function() {
     // todo get one per day
-    const guessme = phrases[4].toUpperCase()
-    const guessmeLetters = guessme.replaceAll(' ', '')
+    const guessme = phrases[3].toUpperCase()
+    let guessmeLetters = guessme.replaceAll(' ', '')
     const lettersCnt = guessmeLetters.length
     let counter = 0
-    let showInterval
+    let showLetterTimer
     let displayed = 0
     let guessCnt = 1
+    let gameCompleted = false
 
     const endGame = () => {
-        clearInterval(showInterval)
-        showInterval = undefined
-        
+        if(gameCompleted) return
+        clearTimeout(showLetterTimer)
+        showLetterTimer = undefined
         setStats(grades.F)
         displayLostPopup()
+        gameCompleted = true
     }
 
     const displayLostPopup = () => {
@@ -41,12 +43,13 @@ $(function() {
     }
 
     const winGame = () => {
+        if(gameCompleted) return
         let pct = (displayed / lettersCnt) * 100
         pct += (guessCnt - 1) * 5
         const grade = getGrade(pct)
-        
         setStats(grade)
         displayWonPopup(grade)
+        gameCompleted = true
     }
 
     const displayWonPopup = (grade) => {
@@ -56,74 +59,76 @@ $(function() {
     }
 
     const showLetter = (isSettingUp) => {
-        const letter = pattern[counter]
+        const letter = pattern[counter % pattern.length]
         if(!isSettingUp) setGameState(counter)
-        if (counter >= pattern.length) {
-            endGame()
-            return
-        }
-        const chr = guessmeLetters.indexOf(letter) 
+     
+        const chr = guessmeLetters.indexOf(letter)
         if(chr != -1) {
-            guessmeLetters.split("").forEach((c, i) => {
-                if(c == letter) {
-                    const el = $(".guessbox span").get(i)
-                    $(el).text(letter)
-                    displayed++
-                }
-            })
-            if (displayed == lettersCnt) {
-                endGame()
-                return
-            }
+            guessmeLetters = guessmeLetters.replace(letter, letter.toLowerCase())
+            const el = $(".guessbox span").get(chr)
+            $(el).text(letter)
+            displayed++
             counter++
+            updateProgress(displayed, lettersCnt)
+            if(!isSettingUp) {
+                if(typeof showLetterTimer !== 'undefined') clearTimeout(showLetterTimer)
+                showLetterTimer = setTimeout(() => showLetter(isSettingUp), LETTER_TIMER)
+            }
         }
         else {
             counter++
             showLetter(isSettingUp)
         }
+        if (displayed == lettersCnt) {
+            endGame()
+        }
     }
     
     setupGame(guessme)
+    initProgress(lettersCnt)
     const todaysState = getTodaysStat()
-    if(todaysState) {
-        while(counter <= todaysState.counter)
-            showLetter(true)
-        if(todaysState.isComplete) {
-            if(todaysState.didWin) displayWonPopup(todaysState.grade)
-            else displayLostPopup(grades.F)
-            $(".guess-now").prop("disabled",true)
-        } else if(todaysState.guessCnt) {
-            guessCnt = todaysState.guessCnt
-            onGuess(guessCnt)
-        }
-    }
-
-    if (typeof showInterval === 'undefined'){
-        if(!todaysState || (todaysState && !todaysState.isComplete && !todaysState.guessCnt))
-            showInterval = setInterval(showLetter, 3000)
+   
+    while(counter <= todaysState.counter)
+        showLetter(true)
+    if(todaysState.isComplete) {
+        if(todaysState.didWin) displayWonPopup(todaysState.grade)
+        else displayLostPopup(grades.F)
+        $(".guess-now").prop("disabled",true)
+    } else if(todaysState.guessCnt) {
+        guessCnt = todaysState.guessCnt
+        onGuess(guessCnt)
     } else {
-        clearInterval(showInterval)
+        $(".popup.instructions").show()
+        $(".popup.instructions .play-now").on("click", () => {
+            if(!todaysState.isComplete && !todaysState.guessCnt)
+                if(typeof showLetterTimer !== 'undefined') clearTimeout(showLetterTimer)
+                showLetterTimer = setTimeout(() => showLetter(), LETTER_TIMER)
+                updateProgress(displayed, lettersCnt)
+                $(".popup.instructions").hide()
+        })
     }
 
     $(".guess-now").on("click", () => {
         onGuess()
-        clearInterval(showInterval)
-        showInterval = undefined
+        clearTimeout(showLetterTimer)
+        showLetterTimer = undefined
     })
 
-    $(".main-section").on("click", ".submit", () => {
+    $(".guess-check").on("click", () => {
         const isCorrect = onGuessSubmit(guessmeLetters)
         if (isCorrect) winGame()
         else if(isCorrect === false) {
             guessCnt++
+            $(".guess-chances span").slice(0, (guessCnt || 1)-1).addClass("lost")
+            updateProgressFromWrongGuess(displayed, lettersCnt, guessCnt)
             setGameStateGuess(guessCnt)
             
-            $(".guess-popup .guessbox").addClass("wrong-guess")
+            $(".guessbox").addClass("wrong-guess")
             setTimeout(() => {
-                $(".guess-popup .guessbox").removeClass("wrong-guess")
-                $(".guess-popup .guessbox input").val("")
-                $(".guess-popup .guessbox input").first().focus()
-                $(".guess-popup h3 span").text(guessCnt)
+                $(".guessbox").removeClass("wrong-guess")
+                $(".guessbox input").val("")
+                $(".guessbox input").first().focus()
+                //$(".guess-popup h3 span").text(guessCnt)
                 if(guessCnt > MAX_GUESS) endGame()
             }, 1000)
             
@@ -168,39 +173,40 @@ const getObjectItem = (key) => {
 }
 
 const onGuess = (guessCnt) => {
-    $(".guess-now").prop("disabled",true)
-    const guessContent = $(".guessbox").clone()
+    setToGuessMode()
+    $(".progress-bar-timer").addClass("hide")
+    $(".guess-chances span").slice(0, (guessCnt || 1)-1).addClass("lost")
     setGameStateGuess(guessCnt || 1)
-    $(guessContent).find("span").each(function() {
+    $(".guessbox").find("span").each(function() {
         if(!$(this).text().trim().length) {
             $(this).html("<input type='text' maxlength='1'>")
         }
     })
-    const guessContentHtml = $(guessContent).html()
-    $(".main-section").append(`
-        <div class="popup guess-popup">
-            <div class="content">
-                <h3>Guess <span>${guessCnt || 1}</span> of 3</h3>
-                <div class="guessbox">${guessContentHtml}</div>
-                <span class="guess-action submit">Submit</span>
-            </div>
-        </div>
-    `)
-    $(".guess-popup").show()
-    $(".guess-popup input").first().focus()
+    // const guessContentHtml = $(guessContent).html()
+    // $(".main-section").append(`
+    //     <div class="popup guess-popup">
+    //         <div class="content">
+    //             <h3>Guess <span>${guessCnt || 1}</span> of 3</h3>
+    //             <div class="guessbox">${guessContentHtml}</div>
+    //             <span class="guess-action submit">Submit</span>
+    //         </div>
+    //     </div>
+    // `)
+    // $(".guess-popup").show()
+    $(".guessbox input").first().focus()
 }
 
 const onGuessSubmit = (answer) => {
     let guess = ''
     let invalid = false
-    $(".guess-popup .guessbox span").each(function() {
+    $(".guessbox span").each(function() {
         if($(this).find("input").length) {
             if($(this).find("input").val() === "") {
                 $(this).find("input[type='text']").each((i, el) => {
                     if(!$(el).val()) $(el).addClass("empty")
                     setTimeout(() => {
-                        $(".guess-popup .guessbox input.empty").first().focus()
-                        $(".guess-popup .guessbox input").removeClass("empty")
+                        $(".guessbox input.empty").first().focus()
+                        $(".guessbox input").removeClass("empty")
                     }, 300)
                 })
                 invalid = true
@@ -209,10 +215,15 @@ const onGuessSubmit = (answer) => {
         } else guess += $(this).text() || ""
     })
     if (invalid) return
-    if(guess.toUpperCase() == answer) {
+    if(guess.toUpperCase() == answer.toUpperCase()) {
         return true
-    } 
+    }
     return false
+}
+
+const setToGuessMode = () => {
+    $(".main-section").addClass("guess-mode")
+    $(".guess-now").remove()
 }
 
 const setGameStateGuess = (guessCnt) => {
@@ -238,8 +249,8 @@ const setStats = (grade) => {
 
 const getGrade = (pct) => {
     if(pct >= 0 && pct <= 40.0) return grades.A
-    else if(pct > 40.0 && pct <= 60.0) return grades.B
-    else if(pct > 60.0 && pct <= 80.0) return grades.C
+    else if(pct > 40.0 && pct <= 70.0) return grades.B
+    else if(pct > 70.0 && pct <= 90.0) return grades.C
     else return grades.D
 }
 
@@ -270,6 +281,26 @@ const displayStats = (el) => {
         $(el).css("height", `${ht}px`)
         if(gameGrades[g]) $(el).text(gameGrades[g])
     })
+}
+
+const updateProgress = (displayed, lettersCnt) => {
+    const p = (displayed / lettersCnt) * 100
+    const ptimer = Math.min(((displayed+1) / lettersCnt) * 100, 100)
+    $(".progress-bar-cover").css("width", `${p}%`)
+    $(".progress-bar-timer").css("width", `${ptimer}%`)
+}
+
+const updateProgressFromWrongGuess = (displayed, lettersCnt, guessCnt) => {
+    let pct = (displayed / lettersCnt) * 100
+    pct += (guessCnt - 1) * 5
+    $(".progress-bar-cover").css("width", `${pct}%`)
+}
+
+const initProgress = (lettersCnt) => {
+    const letterPct = (1 / lettersCnt) * 100
+    for(let i=0; i<lettersCnt - 1; i++) {
+        $(".progress-bar").append(`<small class="divider" style="left:${letterPct * (i+1)}%"></small>`)
+    }
 }
 
 const getTodaysDt = () => {
