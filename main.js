@@ -17,7 +17,7 @@ const setupGame = (guessme) => {
 }
 $(function() {
     // todo get one per day
-    const guessme = phrases[3].toUpperCase()
+    const guessme = phrases[2].toUpperCase()
     let guessmeLetters = guessme.replaceAll(' ', '')
     const lettersCnt = guessmeLetters.length
     let counter = 0
@@ -318,7 +318,7 @@ const pattern = ['D','L','Z','F','E','K','B','O','P','V','T','G','S','A','C','U'
 const phrases = [
     "A great place to unwind",
     "A hop skip and a jump",
-    "A little rest and recuperation",
+    "A glimpse into the future",
     "A mile a minute",
     "Based on actual events"
 ]
