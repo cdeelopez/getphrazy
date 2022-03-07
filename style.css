@@ -134,6 +134,8 @@ body {
 .popup.instructions {
     background: #3572be;
     font-family: 'Special Elite', cursive;
+    font-size: 16px;
+    line-height: 1.2em;
 }
 .popup .content {
     max-width: 90vw;
