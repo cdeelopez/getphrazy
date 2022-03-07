@@ -2,18 +2,21 @@ body {
     font-family: 'Fredoka', sans-serif;
     text-align: center;
 }
-h1 {
+.title {
     font-family: 'Special Elite', cursive;
     color: #3572be;
     font-size: 26px;
     margin-top: 16px;
 }
-h1 span {
+.title span {
     font-size: 1em;
     margin-right: 8px;
 }
-h1 strong {
+.title strong {
     font-size: 1.6em;
+}
+.popup .title {
+    color: white;
 }
 .main-section {
     margin: 16px;
@@ -22,15 +25,71 @@ h1 strong {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
+    margin: 40px 0 60px;
+}
+.guess-chances {
+    display: flex;
+    justify-content: center;
+    transition: all 0.5s ease-in-out;
+    opacity: 0;
+    position: relative;
+}
+.guess-chances:before {
+    content: "Timer stopped. Type in your guess!";
+    position: absolute;
+    top: -24px;
+    font-family: 'Special Elite';
+    font-size: 16px;
+}
+.main-section.guess-mode .guess-chances {
+    opacity: 1;
+}
+.main-section.guess-mode .guess-check {
+    display: inline-block;
+}
+.main-section.guess-mode .guess-now {
+    display: none;
+}
+.main-section .guess-check {
+    display: none;
+}
+.guess-action:after {
+    font-family: 'Special Elite';
+    display: block;
+    text-transform: none;
+    margin-top: 4px;
+}
+.guess-now:after {
+    content: "(No turning back!)";
+}
+.guess-check:after {
+    content: "(With confidence.)";
+}
+.guess-chances span {
+    width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
+    margin: 0 8px;
+    position: relative;
+}
+.guess-chances span.lost:after {
+    content: "x";
+    font-family: 'Rock Salt', cursive;
+    position: absolute;
+    font-size: 32px;
+    top: -7px;
+    left: 1px;
+    color: #d21818;
 }
 .guessbox div {
     display: flex;
 }
 .guessbox span {
-    width: 30px;
-    height: 36px;
+    width: 36px;
+    height: 44px;
     margin: 8px 1px;
-    font-size: 22px;
+    font-size: 26px;
     background: #ccc;
     display: flex;
     justify-content: center;
@@ -58,7 +117,9 @@ h1 strong {
     cursor: not-allowed;
     color: #dccccc;
 }
-
+.guess-action.play-now:after {
+    content: "(I accept all risks.)";
+}
 .popup {
     position: absolute;
     top: 0;
@@ -68,6 +129,10 @@ h1 strong {
     background: rgba(0,0,0,0.5);
     z-index: 100;
     display: none;
+}
+.popup.instructions {
+    background: #3572be;
+    font-family: 'Special Elite', cursive;
 }
 .popup .content {
     max-width: 90vw;
@@ -81,14 +146,17 @@ h1 strong {
     padding: 24px;
     border-radius: 4px;
 }
-.popup .guessbox {
-    margin-top: 8px;
+.popup.instructions .content ol {
+    text-align: left;
+}
+.popup.instructions .content li {
+    margin-bottom: 8px;
 }
 .guessbox input {
     width: 100%;
     height: 100%;
     padding: 0;
-    font-size: 18px;
+    font-size: 26px;
     font-family: 'Fredoka', sans-serif;
     text-align: center;
     text-transform: uppercase;
@@ -128,31 +196,39 @@ h1 strong {
     margin: 8px;
 }
 .popup .grade-a,
-.stats .chart span:nth-child(1) {
+.stats .chart span:nth-child(1),
+.progress span.prog-a {
     background: #2b922b;
 }
-.popup .grade-a:before {
+.popup .grade-a:before,
+.progress span.prog-a:before {
     content: "A";
 }
 .popup .grade-b,
-.stats .chart span:nth-child(2) {
+.stats .chart span:nth-child(2),
+.progress span.prog-b {
     background: #66be1e;
 }
-.popup .grade-b:before {
+.popup .grade-b:before,
+.progress span.prog-b:before {
     content: "B";
 }
 .popup .grade-c,
-.stats .chart span:nth-child(3) {
+.stats .chart span:nth-child(3),
+.progress span.prog-c {
     background: #d7d72b;
 }
-.popup .grade-c:before {
+.popup .grade-c:before,
+.progress span.prog-c:before {
     content: "C";
 }
 .popup .grade-d,
-.stats .chart span:nth-child(4) {
+.stats .chart span:nth-child(4),
+.progress span.prog-d {
     background: rgb(243, 166, 22);
 }
-.popup .grade-d:before {
+.popup .grade-d:before,
+.progress span.prog-d:before {
     content: "D";
 }
 .popup h2.grade-f {
@@ -178,7 +254,7 @@ h1 strong {
     height: 120px;
     align-self: end;
     opacity: 0.7;
-    line-height: 30px;
+    line-height: 1em;
     display: flex;
     align-items: end;
     justify-content: center;
@@ -187,11 +263,63 @@ h1 strong {
 .stats .chart-labels {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: 1fr;s
+    grid-template-rows: 1fr;
     align-content: center;
     font-size: 11px;
     color: white;
 }
-.stats .chart-labels {
+.stats .chart-labels,
+.progress span {
     font-family: 'Rock Salt', cursive;
+}
+.progress {
+    width: 90%;
+    margin: 24px auto 8px;
+    position: relative;
+}
+.progress-bar {
+    display: grid;
+    grid-template-columns: 10% 20% 30% 40%;
+    position: relative;
+}
+.progress-bar .divider {
+    position: absolute;
+    width: 1px;
+    bottom: 0;
+    height: 4px;
+    background-color: #ffffff87;
+}
+.progress-bar-cover,
+.progress-bar-timer {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    transition: all .5s linear;
+    background: white;
+    width: 0;
+}
+.progress-bar-timer {
+    transition: all 5s linear;
+    background: rgba(255, 255, 255, 0.664);
+    top: auto;
+    height: 4px;
+}
+.progress-bar-timer.hide {
+    opacity: 0;
+    transition-duration: .5s;
+}
+.progress span {
+    height: 20px;
+    color: white;
+    font-size: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.progress span:first-child {
+    border-radius: 4px 0 0 4px;
+}
+.progress span:last-of-type {
+    border-radius: 0 4px 4px 0;
 }
