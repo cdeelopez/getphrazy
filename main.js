@@ -272,7 +272,8 @@ const shareStats = (origWord, word, guessCnt) => {
     let grade = $(".game-end-popup h2.grade").attr("data-grade")
     grade = Object.keys(grades).find(key => grades[key] === grade)
     const message = `Phraze ${todaysDayInYear()}.${new Date().getFullYear().toString().substring(2)}
-Grade: ${grade}, ${guessCnt === 1 ? 'first' : (guessCnt === 2 ? 'second' : 'third')} guess
+Grade: ${grade}, ${guessCnt === 1 ? '1st' : (guessCnt === 2 ? '2nd' : '3rd')} Guess!
+
 ${buildPhraseStatus(origWord, word)}`
     $("body").append("<textarea class='share-msg'></textarea>")
     $(".share-msg").html(message)
@@ -297,21 +298,36 @@ const buildPhraseStatus = (origWord, word) => {
     const spaceIndices = []
     let phrase = ""
     let offset = 0
+    let lastSpaceInd = 0
     for(let i = 0; i < origWord.length; i++) {
         if(origWord[i] === " ") spaceIndices.push(i)
     }
 
     for(let i = 0; i < word.length; i++) {
         if(spaceIndices.indexOf(i + offset) > -1) {
-            phrase += "   "
+            phrase += "  "
             offset++
+        }
+
+        // add newline to most recent space
+        if(i >= 10 && i % 10 == 0) {
+            const lastSpace = phrase.lastIndexOf(" ")
+            phrase = `${phrase.substring(0, lastSpace)}
+
+${phrase.substring(lastSpace + 1)}`
         }
       
         if(word[i] === word[i].toUpperCase()) phrase += "&#129001;"
         else phrase += "&#128307;"
-    } 
 
+        
+    } 
+    console.log(phrase)
     return phrase
+}
+
+const replaceAt = (word, index, char) => {
+    word.substr(0, index) + char + word.substrr(index + char.length)
 }
 
 const displayStats = () => {
