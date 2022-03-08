@@ -9,18 +9,21 @@
         <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500&family=Rock+Salt&family=Special+Elite&display=swap" rel="stylesheet">
         <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
         <script src="https://kit.fontawesome.com/eda7aa5adb.js" crossorigin="anonymous"></script>
-        <script src="main-min.js"></script>
+        <script src="main.js"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css" integrity="sha512-NmLkDIU1C/C88wi324HBc+S2kLhi08PN5GDeUVVVC/BVt/9Izdsc9SVeVfA1UZbY3sHUlDSyRXhCzHfr6hmPPw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <link rel="stylesheet" type="text/css" href="style.css">
     </head>
     <body>
         <h1 class="title"><span>get</span><strong>Phrazy</strong></h1>
         <div class="main-section">
-            <div class="guessbox"></div>
+            <div class="guessbox">
+                <h2></h2>
+                <div class="guess-section"></div>
+            </div>
             <div class="guess-chances">
-                <span></span>
-                <span></span>
-                <span></span>
+                <span>1</span>
+                <span>2</span>
+                <span>3</span>
             </div>
             <div class="progress">
                 <div class="progress-bar">
@@ -49,11 +52,12 @@
                 </div>
             </div>
             <div class="popup instructions">
-                <h1 class="title"><span>get</span><strong>Phrazy</strong></h1>
+                <h2 class="title"><span>get</span><strong>Phrazy</strong></h2>
                 <div class="content">
                     <ol>
+                        <li class="emphasize">Guess the Phraze!</li>
                         <li>Letters will appear every 5 seconds. </li>
-                        <li>Once you start guessing, the timer stops and no new letters will be shown.</li>
+                        <li class="highlight">Once you start guessing, the timer stops and no new letters will be shown.</li>
                         <li>You have 3 chances to guess the right phraze.</li>
                         <li>The sooner you guess, the higher the grade!</li>
                     </ol>

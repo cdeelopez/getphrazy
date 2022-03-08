@@ -13,11 +13,11 @@ const setupGame = (guessme) => {
     }
     html += '</div>'
 
-    $(".guessbox").html(html)
+    $(".guessbox .guess-section").html(html)
 }
 const getPhrases = (cb) => {
-    $.getJSON("./phrazes.json", function(data){
-        cb(data.phrases)
+    $.getJSON("./phrazes-cat.json", function(data){
+        cb(data.phrazes)
     }).fail(function(){
         console.log("An error has occurred.")
     });
@@ -27,6 +27,7 @@ $(function() {
     const todaysPattern = pattern[todaysDt.getDay()]
     let phrases
     let guessme
+    let todaysPhraze
     let guessmeLetters
     let lettersCnt
     let counter = 0
@@ -37,11 +38,14 @@ $(function() {
 
     getPhrases((p) => {
         phrases = p
+        
         startGame()
     })
 
     const startGame = () => {
-        guessme = phrases[todaysDayInYear() % phrases.length].toUpperCase()
+        todaysPhraze = phrases[todaysDayInYear() % phrases.length]
+        guessme = todaysPhraze.phraze.toUpperCase()
+    
         guessmeLetters = guessme.replaceAll(' ', '')
         lettersCnt = guessmeLetters.length
 
@@ -57,17 +61,26 @@ $(function() {
             $(".guess-now").prop("disabled",true)
         } else if(todaysState.guessCnt) {
             guessCnt = todaysState.guessCnt
+            showCategory()
             onGuess(guessCnt)
         } else {
             $(".popup.instructions").show()
             $(".popup.instructions .play-now").on("click", () => {
-                if(!todaysState.isComplete && !todaysState.guessCnt)
+                if(!todaysState.isComplete && !todaysState.guessCnt) {
                     if(typeof showLetterTimer !== 'undefined') clearTimeout(showLetterTimer)
                     showLetterTimer = setTimeout(() => showLetter(), LETTER_TIMER)
-                    updateProgress(displayed, lettersCnt)
-                    $(".popup.instructions").hide()
+                }
+                updateProgress(displayed, lettersCnt)
+                $(".popup.instructions").hide()
+                showCategory()
             })
         }
+    }
+
+    const showCategory = () => {
+        $(".guessbox h2").text(todaysPhraze.category)
+            .addClass("show")
+            .parent().addClass("ready")
     }
     
 
@@ -146,13 +159,18 @@ $(function() {
                 $(".guessbox").removeClass("wrong-guess")
                 $(".guessbox input").val("")
                 $(".guessbox input").first().focus()
-                //$(".guess-popup h3 span").text(guessCnt)
                 if(guessCnt > MAX_GUESS) endGame()
             }, 1000)
             
         }
     })
 
+    $(".main-section").on("keypress", "input[type='text']", (e) => {
+        const inputs = $(e.target).closest(".guessbox").find("input[type='text']")
+        if(e.keyCode !== 8) {
+            inputs.eq(inputs.index(e.target) + 1).focus();
+        }
+    })
     $(".main-section").on("keyup", "input[type='text']", (e) => {
         const inputs = $(e.target).closest(".guessbox").find("input[type='text']")
         if(e.keyCode == 8) {
@@ -160,8 +178,6 @@ $(function() {
                 .val("")
                 .focus()
 
-        } else {
-            inputs.eq(inputs.index(e.target) + 1).focus();
         }
     })
 
@@ -169,8 +185,6 @@ $(function() {
         const a = shareStats(guessme, guessmeLetters, guessCnt)
     })
 
-    // const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-    // console.log(randomizeItems(alphabet))
 
 });
 
@@ -179,10 +193,17 @@ const setGameState = (counter) => {
 }
 
 const getTodaysStat = () => {
-    const lastPlayed = localStorage.getItem(items.LAST_PLAYED)
-    const todaysDt = getTodaysDt()
-    if(lastPlayed != todaysDt) {
-        localStorage.setItem(items.LAST_PLAYED,todaysDt)
+    // remove dep - wipeout
+    if(localStorage.getItem(items.LAST_PLAYED_DEP)) {
+        localStorage.removeItem(items.LAST_PLAYED_DEP)
+        localStorage.removeItem(items.GAME_STATE)
+        localStorage.removeItem(items.GRADES)
+        localStorage.removeItem(items.TOTAL_PCT)
+    }
+    const lastPlayed = localStorage.getItem(items.LAST_PLAYED_PHRAZE)
+    const todaysDay = todaysDayInYear()
+    if(lastPlayed != todaysDay) {
+        localStorage.setItem(items.LAST_PLAYED_PHRAZE,todaysDay)
         localStorage.removeItem(items.GAME_STATE)
     }
 
@@ -257,24 +278,25 @@ const setStats = (grade, pct) => {
     localStorage.setItem(items.GRADES, JSON.stringify(gameGrades))
 
     const totalPct = localStorage.getItem(items.TOTAL_PCT) || 0
-    localStorage.setItem(items.TOTAL_PCT, totalPct + pct)
+    localStorage.setItem(items.TOTAL_PCT, parseFloat(totalPct) + parseFloat(pct))
 
 }
 
 const getGrade = (pct) => {
     if(pct >= 0 && pct <= 40.0) return grades.A
-    else if(pct > 40.0 && pct <= 70.0) return grades.B
-    else if(pct > 70.0 && pct <= 90.0) return grades.C
-    else return grades.D
+    else if(pct > 40.0 && pct <= 60.0) return grades.B
+    else if(pct > 60.0 && pct <= 80.0) return grades.C
+    else if(pct < 100.0) return grades.D
+    else return grades.F
 }
 
 const shareStats = (origWord, word, guessCnt) => {
     let grade = $(".game-end-popup h2.grade").attr("data-grade")
     grade = Object.keys(grades).find(key => grades[key] === grade)
-    const message = `Phraze ${todaysDayInYear()}.${new Date().getFullYear().toString().substring(2)}
-Grade: ${grade}, ${guessCnt === 1 ? '1st' : (guessCnt === 2 ? '2nd' : '3rd')} Guess!
+    const message = `Phraze ${todaysDayInYear()},'${new Date().getFullYear().toString().substring(2)}
+Grade: ${grade}, ${getSubMsg(grade, word, guessCnt)}
 
-${buildPhraseStatus(origWord, word)}`
+${buildPhraseStatus(origWord, word, grade)}`
     $("body").append("<textarea class='share-msg'></textarea>")
     $(".share-msg").html(message)
     
@@ -294,11 +316,19 @@ ${buildPhraseStatus(origWord, word)}`
 
 }
 
-const buildPhraseStatus = (origWord, word) => {
+const getSubMsg = (grade, word, guessCnt) => {
+    if(grade === "F" && word.toLowerCase() === word)
+        return "Ran out of time!"
+    if(grade === "F")
+        return "Ran out of guesses!"
+    else 
+        return `${guessCnt === 1 ? '1st' : (guessCnt === 2 ? '2nd' : '3rd')} Guess!`
+}
+
+const buildPhraseStatus = (origWord, word, grade) => {
     const spaceIndices = []
     let phrase = ""
     let offset = 0
-    let lastSpaceInd = 0
     for(let i = 0; i < origWord.length; i++) {
         if(origWord[i] === " ") spaceIndices.push(i)
     }
@@ -317,12 +347,12 @@ const buildPhraseStatus = (origWord, word) => {
 ${phrase.substring(lastSpace + 1)}`
         }
       
-        if(word[i] === word[i].toUpperCase()) phrase += "&#129001;"
-        else phrase += "&#128307;"
-
-        
+        if(word[i] === word[i].toUpperCase()) {
+            if(grade === "F") phrase += emojis.RED_BOX
+            else phrase += emojis.GREEN_BOX
+        }
+        else phrase += emojis.REVEALED_BOX
     } 
-    console.log(phrase)
     return phrase
 }
 
@@ -333,9 +363,11 @@ const replaceAt = (word, index, char) => {
 const displayStats = () => {
     const el = $(".game-end-popup .stats")
     const gameGrades = getObjectItem(items.GRADES)
+    const overallPct = localStorage.getItem(items.TOTAL_PCT)
     const arr = Object.values(gameGrades)
     const max = Math.max(...arr) || 5
     const gameTotal = arr.reduce((a, b) => a + b, 0)
+    const overallGrade = overallPct ? getGrade(overallPct / arr.length) : ""
     const statsHtml =  `
         <div class="chart">
             <span data-grade="${grades.A}">&nbsp;</span>
@@ -355,7 +387,7 @@ const displayStats = () => {
     const overallStatsHtml = `
         <div class="overall-stats">
             <span class="game-total">${gameTotal}</span>
-            <span class="grade"></span>
+            <span class="grade ${overallGrade}"></span>
             <h5>Total Games Played</h5>
             <h5>Overall Grade</h5>
         </div>
@@ -447,7 +479,8 @@ const pattern = [
     ['W','G','Y','U','M','N','H','I','K','Z','O','R','B','Q','C','P','J','F','S','T','L','A','X','E','D','V']]
 
 const items = {
-    LAST_PLAYED: "last-played-date",
+    LAST_PLAYED_DEP: "last-played-date",
+    LAST_PLAYED_PHRAZE: "last-played-phraze",
     GAME_STATE: "game-state",
     GRADES: "grades",
     TOTAL_PCT: "overall-pct-shown"
@@ -467,6 +500,12 @@ const grades = {
     C: "grade-c",
     D: "grade-d",
     F: "grade-f",
+}
+
+const emojis = {
+    GREEN_BOX: "&#129001;",
+    REVEALED_BOX: "&#128307;",
+    RED_BOX: "&#128997;" 
 }
 
 const MAX_GUESS = 3

@@ -17,16 +17,30 @@ body {
 }
 .popup .title {
     color: white;
+    margin-top: 24px;
 }
 .main-section {
     margin: 16px auto;
     max-width: 800px;
 }
 .guessbox {
+    margin: 40px 8px 60px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+.guessbox .guess-section {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    margin: 40px 0 60px;
+    opacity: 0.5;
+}
+.guessbox.ready .guess-section {
+    transition: opacity 0.3s ease-in-out 2s;
+    opacity: 1;
+}
+.guessbox.playing .guess-section {
+    opacity: 1;
 }
 .guess-chances {
     display: flex;
@@ -67,12 +81,17 @@ body {
     content: "(With confidence.)";
 }
 .guess-chances span {
+    font-family: 'Rock Salt', cursive;
     width: 20px;
     height: 20px;
     border-radius: 10px;
     box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
     margin: 0 8px;
     position: relative;
+    font-size: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 .guess-chances span.lost:after {
     content: "x";
@@ -118,6 +137,9 @@ body {
     cursor: not-allowed;
     color: #dccccc;
 }
+.guess-action.play-now {
+    margin-top: 8px;
+}
 .guess-action.play-now:after {
     content: "(I accept all risks.)";
 }
@@ -153,7 +175,15 @@ body {
     text-align: left;
 }
 .popup.instructions .content li {
-    margin-bottom: 8px;
+    margin-bottom: 16px;
+}
+.popup.instructions li.emphasize {
+    font-size: 20px;
+    letter-spacing: 1px;
+    margin-bottom: 24px;
+}
+.popup.instructions li.highlight {
+    color: #d21818;
 }
 .popup .share {
     padding: 8px;
@@ -180,14 +210,18 @@ body {
     border-radius: 4px;
     transition: all 0.3s ease-in-out;
 }
+.guessbox.wrong-guess span{
+    transition: all 0.3s ease-in-out;
+}
 .guessbox.wrong-guess input,
+.guessbox.wrong-guess span,
 .guessbox input.empty {
     background: #d21818;
 }
 .popup h2, .popup h3 {
     margin: 0;
 }
-.error-popup p {
+.popup p {
     letter-spacing: 1px;
     margin-top: 8px;
 }
@@ -315,8 +349,8 @@ body {
     justify-items: center;
     grid-template-columns: 1fr 1fr;
     max-width: 300px;
-    margin: 8px auto 24px;
-    grid-gap: 8px;
+    margin: 16px auto;
+    grid-gap: 4px;
 }
 .overall-stats h5 {
     font-size: 14px;
@@ -336,7 +370,7 @@ body {
 }
 .progress-bar {
     display: grid;
-    grid-template-columns: 10% 20% 30% 40%;
+    grid-template-columns: 20% 20% 20% 40%;
     position: relative;
 }
 .progress-bar .divider {
@@ -380,3 +414,36 @@ body {
 .progress span:last-of-type {
     border-radius: 0 4px 4px 0;
 }
+.guessbox h2 {
+    position: absolute;
+    font-size: 14px;
+    font-family: 'Rock Salt';
+    top: 22px;
+    transition: all 0.3s ease-in-out;
+    letter-spacing: 1px;
+    z-index: 10;
+}
+.guessbox h2.show {
+    animation-duration: 2s;
+    animation-name: zoomin;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+}
+
+
+@keyframes zoomin {
+    from {
+        transform: scale(1);
+        top: 22px;
+    }
+  
+    50% {
+        transform: scale(2.4);
+        top: 22px;
+    }
+  
+    to {
+        transform: scale(1);
+        top: -12px;
+    }
+  }
