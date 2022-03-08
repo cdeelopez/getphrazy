@@ -274,21 +274,22 @@ const shareStats = (origWord, word, guessCnt) => {
     const message = `Phraze ${todaysDayInYear()}.${new Date().getFullYear().toString().substring(2)}
 Grade: ${grade}, ${guessCnt === 1 ? 'first' : (guessCnt === 2 ? 'second' : 'third')} guess
 ${buildPhraseStatus(origWord, word)}`
+    $("body").append("<textarea class='share-msg'></textarea>")
+    $(".share-msg").html(message)
+    
     if (navigator.share) {
         navigator.share({
           title: "Get Phrazy",
-          text: message
+          text: $(".share-msg").html()
         }).then(() => {
           console.log('Thanks for sharing!');
         })
         .catch(console.error);
       } else {
-        $("body").append("<textarea class='share-msg'></textarea>")
-        $(".share-msg").html(message)
         $(".share-msg").select()
         document.execCommand("copy")
-        $(".share-msg").remove()
       }
+      $(".share-msg").remove()
 
 }
 
