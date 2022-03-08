@@ -133,7 +133,7 @@ $(function() {
             counter++
             showLetter(isSettingUp)
         }
-        if (displayed == lettersCnt) {
+        if (displayed == lettersCnt && !isSettingUp) {
             endGame()
         }
     }
@@ -387,6 +387,7 @@ const displayStats = () => {
             <h5>Overall Grade</h5>
         </div>
     `
+  
     el.html(statsHtml)
     el.after(overallStatsHtml)
     el.find(".chart span").each((i, el) => {

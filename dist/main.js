@@ -162,7 +162,7 @@ $(function () {
       showLetter(isSettingUp);
     }
 
-    if (displayed == lettersCnt) {
+    if (displayed == lettersCnt && !isSettingUp) {
       endGame();
     }
   };
