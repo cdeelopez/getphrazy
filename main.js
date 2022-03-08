@@ -47,13 +47,13 @@ $(function() {
 
         setupGame(guessme)
         initProgress(lettersCnt)
+        initNextPhrazeCountdown()
         const todaysState = getTodaysStat()
     
         while(counter <= todaysState.counter)
             showLetter(true)
         if(todaysState.isComplete) {
-            if(todaysState.didWin) displayWonPopup(todaysState.grade)
-            else displayLostPopup(grades.F)
+            displayEndPopup(todaysState.grade)
             $(".guess-now").prop("disabled",true)
         } else if(todaysState.guessCnt) {
             guessCnt = todaysState.guessCnt
@@ -75,16 +75,9 @@ $(function() {
         if(gameCompleted) return
         clearTimeout(showLetterTimer)
         showLetterTimer = undefined
-        setStats(grades.F)
-        displayLostPopup()
+        setStats(grades.F, 101)
+        displayEndPopup(grades.F)
         gameCompleted = true
-    }
-
-    const displayLostPopup = () => {
-        $(".error-popup h2").addClass(grades.F)
-        $(".error-popup p").text(guessme)
-        displayStats($(".error-popup .stats"))
-        $(".error-popup").show()
     }
 
     const winGame = () => {
@@ -92,15 +85,18 @@ $(function() {
         let pct = (displayed / lettersCnt) * 100
         pct += (guessCnt - 1) * 5
         const grade = getGrade(pct)
-        setStats(grade)
-        displayWonPopup(grade)
+        setStats(grade, pct)
+        displayEndPopup(grade)
         gameCompleted = true
     }
 
-    const displayWonPopup = (grade) => {
-        $(".win-popup h2").addClass(grade)
-        displayStats($(".win-popup .stats"))
-        $(".win-popup").show()
+    const displayEndPopup = (grade) => {
+        $(".game-end-popup h3").text(messages[grade])
+        $(".game-end-popup h2").addClass(grade)
+                    .attr("data-grade", grade)
+        if (grade === grades.F) $(".game-end-popup p").text(guessme)
+        displayStats()
+        $(".game-end-popup").show()
     }
 
     const showLetter = (isSettingUp) => {
@@ -169,6 +165,10 @@ $(function() {
         }
     })
 
+    $(".bottom-bar .share").on("click", function() {
+        const a = shareStats(guessme, guessmeLetters, guessCnt)
+    })
+
     // const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
     // console.log(randomizeItems(alphabet))
 
@@ -204,17 +204,6 @@ const onGuess = (guessCnt) => {
             $(this).html("<input type='text' maxlength='1'>")
         }
     })
-    // const guessContentHtml = $(guessContent).html()
-    // $(".main-section").append(`
-    //     <div class="popup guess-popup">
-    //         <div class="content">
-    //             <h3>Guess <span>${guessCnt || 1}</span> of 3</h3>
-    //             <div class="guessbox">${guessContentHtml}</div>
-    //             <span class="guess-action submit">Submit</span>
-    //         </div>
-    //     </div>
-    // `)
-    // $(".guess-popup").show()
     $(".guessbox input").first().focus()
 }
 
@@ -254,8 +243,7 @@ const setGameStateGuess = (guessCnt) => {
     localStorage.setItem(items.GAME_STATE, JSON.stringify(state))
 }
 
-const setStats = (grade) => {
-    $(".guess-popup").hide()
+const setStats = (grade, pct) => {
 
     const currStats = getObjectItem(items.GAME_STATE)
     currStats.didWin = grade != grades.F
@@ -267,6 +255,10 @@ const setStats = (grade) => {
     const currGradeCount = gameGrades[grade] || 0
     gameGrades[grade] = currGradeCount + 1
     localStorage.setItem(items.GRADES, JSON.stringify(gameGrades))
+
+    const totalPct = localStorage.getItem(items.TOTAL_PCT) || 0
+    localStorage.setItem(items.TOTAL_PCT, totalPct + pct)
+
 }
 
 const getGrade = (pct) => {
@@ -276,10 +268,57 @@ const getGrade = (pct) => {
     else return grades.D
 }
 
-const displayStats = (el) => {
+const shareStats = (origWord, word, guessCnt) => {
+    let grade = $(".game-end-popup h2.grade").attr("data-grade")
+    grade = Object.keys(grades).find(key => grades[key] === grade)
+    const message = `Phraze ${todaysDayInYear()}.${new Date().getFullYear().toString().substring(2)}
+Grade: ${grade}, ${guessCnt === 1 ? 'first' : (guessCnt === 2 ? 'second' : 'third')} guess
+${buildPhraseStatus(origWord, word)}`
+    if (navigator.share) {
+        navigator.share({
+          title: "Get Phrazy",
+          text: message
+        }).then(() => {
+          console.log('Thanks for sharing!');
+        })
+        .catch(console.error);
+      } else {
+        $("body").append("<textarea class='share-msg'></textarea>")
+        $(".share-msg").html(message)
+        $(".share-msg").select()
+        document.execCommand("copy")
+        $(".share-msg").remove()
+      }
+
+}
+
+const buildPhraseStatus = (origWord, word) => {
+    const spaceIndices = []
+    let phrase = ""
+    let offset = 0
+    for(let i = 0; i < origWord.length; i++) {
+        if(origWord[i] === " ") spaceIndices.push(i)
+    }
+
+    for(let i = 0; i < word.length; i++) {
+        if(spaceIndices.indexOf(i + offset) > -1) {
+            phrase += "   "
+            offset++
+        }
+      
+        if(word[i] === word[i].toUpperCase()) phrase += "&#129001;"
+        else phrase += "&#128307;"
+    } 
+
+    return phrase
+}
+
+const displayStats = () => {
+    const el = $(".game-end-popup .stats")
     const gameGrades = getObjectItem(items.GRADES)
     const arr = Object.values(gameGrades)
     const max = Math.max(...arr) || 5
+    const gameTotal = arr.reduce((a, b) => a + b, 0)
     const statsHtml =  `
         <div class="chart">
             <span data-grade="${grades.A}">&nbsp;</span>
@@ -296,7 +335,16 @@ const displayStats = (el) => {
             <span class="${grades.F}"></span>
         </div>
     `
+    const overallStatsHtml = `
+        <div class="overall-stats">
+            <span class="game-total">${gameTotal}</span>
+            <span class="grade"></span>
+            <h5>Total Games Played</h5>
+            <h5>Overall Grade</h5>
+        </div>
+    `
     el.html(statsHtml)
+    el.after(overallStatsHtml)
     el.find(".chart span").each((i, el) => {
         const g = $(el).attr("data-grade")
         const ht = ((gameGrades[g] || 0) / max) * 100
@@ -338,6 +386,35 @@ const todaysDayInYear = () => {
     return Math.floor(diff / oneDay)
 }
 
+const displayCountdown = () => {
+    const today = new Date()
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    tomorrow.setHours(0, 0, 0, 0)
+
+    const total = Date.parse(tomorrow) - Date.parse(today);
+    const seconds = ('0'+Math.floor((total / 1000) % 60)).slice(-2);
+    const minutes = ('0'+Math.floor((total / 1000 / 60) % 60)).slice(-2);
+    const hours = ('0'+Math.floor((total / (1000 * 60 * 60)) % 24)).slice(-2);
+
+    $(".game-end-popup .next-phraze span").text(`${hours}:${minutes}:${seconds}`)
+
+    if (total <= 0 && typeof window.nextPhrazeInterval != 'undefined') {
+        clearInterval(window.nextPhrazeInterval)
+    }
+}
+
+const initNextPhrazeCountdown = () => {
+    if(typeof window.nextPhrazeInterval != 'undefined')
+        clearInterval(window.nextPhrazeInterval)
+
+    displayCountdown()
+
+    window.nextPhrazeInterval = setInterval(() => {
+        displayCountdown()
+    }, 1000)
+}
+
 const randomizeItems = (items) => items
         .map((a) => ({sort: Math.random(), value: a}))
         .sort((a, b) => a.sort - b.sort)
@@ -355,7 +432,16 @@ const pattern = [
 const items = {
     LAST_PLAYED: "last-played-date",
     GAME_STATE: "game-state",
-    GRADES: "grades"
+    GRADES: "grades",
+    TOTAL_PCT: "overall-pct-shown"
+}
+
+const messages = {
+    "grade-a": "Rockstar!",
+    "grade-b": "You got it!",
+    "grade-c": "Good Guess!",
+    "grade-d": "Phew, that was close!",
+    "grade-f": "",
 }
 
 const grades = {
