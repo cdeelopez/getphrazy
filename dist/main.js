@@ -340,15 +340,15 @@ var buildPhraseStatus = function buildPhraseStatus(origWord, word, grade) {
   }
 
   for (var _i = 0; _i < word.length; _i++) {
-    if (spaceIndices.indexOf(_i + offset) > -1) {
-      phrase += "  ";
-      offset++;
-    } // add newline to most recent space
-
-
+    // add newline to most recent space
     if (_i >= 10 && _i % 10 == 0) {
       var lastSpace = phrase.lastIndexOf(" ");
       phrase = "".concat(phrase.substring(0, lastSpace), "\n\n").concat(phrase.substring(lastSpace + 1));
+    }
+
+    if (spaceIndices.indexOf(_i + offset) > -1) {
+      phrase += "  ";
+      offset++;
     }
 
     if (word[_i] === word[_i].toUpperCase()) {

@@ -329,17 +329,17 @@ const buildPhraseStatus = (origWord, word, grade) => {
     }
 
     for(let i = 0; i < word.length; i++) {
-        if(spaceIndices.indexOf(i + offset) > -1) {
-            phrase += "  "
-            offset++
-        }
-
         // add newline to most recent space
         if(i >= 10 && i % 10 == 0) {
             const lastSpace = phrase.lastIndexOf(" ")
             phrase = `${phrase.substring(0, lastSpace)}
 
 ${phrase.substring(lastSpace + 1)}`
+        }
+
+        if(spaceIndices.indexOf(i + offset) > -1) {
+            phrase += "  "
+            offset++
         }
       
         if(word[i] === word[i].toUpperCase()) {
