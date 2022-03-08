@@ -165,19 +165,14 @@ $(function() {
         }
     })
 
-    $(".main-section").on("keypress", "input[type='text']", (e) => {
-        const inputs = $(e.target).closest(".guessbox").find("input[type='text']")
-        if(e.keyCode !== 8) {
-            inputs.eq(inputs.index(e.target) + 1).focus();
-        }
-    })
     $(".main-section").on("keyup", "input[type='text']", (e) => {
         const inputs = $(e.target).closest(".guessbox").find("input[type='text']")
         if(e.keyCode == 8) {
             inputs.eq(Math.max(inputs.index(e.target) - 1, 0))
                 .val("")
                 .focus()
-
+        } else {
+            inputs.eq(inputs.index(e.target) + 1).focus();
         }
     })
 

@@ -188,18 +188,13 @@ $(function () {
       }, 1000);
     }
   });
-  $(".main-section").on("keypress", "input[type='text']", function (e) {
-    var inputs = $(e.target).closest(".guessbox").find("input[type='text']");
-
-    if (e.keyCode !== 8) {
-      inputs.eq(inputs.index(e.target) + 1).focus();
-    }
-  });
   $(".main-section").on("keyup", "input[type='text']", function (e) {
     var inputs = $(e.target).closest(".guessbox").find("input[type='text']");
 
     if (e.keyCode == 8) {
       inputs.eq(Math.max(inputs.index(e.target) - 1, 0)).val("").focus();
+    } else {
+      inputs.eq(inputs.index(e.target) + 1).focus();
     }
   });
   $(".bottom-bar .share").on("click", function () {
