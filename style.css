@@ -155,6 +155,19 @@ body {
 .popup.instructions .content li {
     margin-bottom: 8px;
 }
+.popup .share {
+    padding: 8px;
+    background: #3572be;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+}
+.popup .share:before {
+    content: "Share";
+    font-size: 13px;
+    margin-right: 4px;
+    letter-spacing: 0.5px;
+}
 .guessbox input {
     width: 100%;
     height: 100%;
@@ -179,9 +192,10 @@ body {
     margin-top: 8px;
 }
 .popup h3 {
+    font-family: 'Special Elite';
     font-size: 20px;
 }
-.popup h2 {
+.popup .grade {
     font-family: 'Rock Salt', cursive;
     display: inline-block;
     width: 48px;
@@ -189,11 +203,14 @@ body {
     color: white;
     margin-top: 8px;
 }
-.popup h2:before {
-    font-size: 20px;
+.popup .grade:before {
+    font-size: 10px;
     line-height: 1.2em;
 }
-.popup h2:before,
+.popup h2.grade:before {
+    font-size: 20px;
+}
+.popup .grade:before,
 .stats .chart-labels span:before {
     display: inline-block;
     margin: 8px;
@@ -242,25 +259,42 @@ body {
     background: #d21818;
 }
 .popup .grade-f:before {
-    content: "Failed";
-}
-.popup .stats .grade-f:before {
     content: "F";
 }
-
+.popup h2.grade-f:before {
+    content: "Failed";
+}
+.popup .bottom-bar {
+    display: grid;
+    grid-template-columns: auto 76px;
+    align-items: center;
+    font-size: 12px;
+    border-top: 1px solid #d6cdcd66;
+    padding-top: 8px;
+}
+.popup .bottom-bar .next-phraze {
+    justify-self: start;
+}
+.popup .bottom-bar .next-phraze span {
+    font-size: 22px;
+}
+.stats {
+    position: relative;
+}
 .stats .chart{
     width: 100%;
     height: 120px;
-    margin-top: 16px;
+    margin-top: 8px;
 }
 .stats .chart span {
     height: 120px;
     align-self: end;
     opacity: 0.7;
-    line-height: 1em;
+    line-height: 2em;
     display: flex;
     align-items: end;
     justify-content: center;
+    font-size: 8px;
 }
 .stats .chart,
 .stats .chart-labels {
@@ -271,9 +305,29 @@ body {
     font-size: 11px;
     color: white;
 }
+.stats .chart,
 .stats .chart-labels,
 .progress span {
     font-family: 'Rock Salt', cursive;
+}
+.overall-stats {
+    display: grid;
+    justify-items: center;
+    grid-template-columns: 1fr 1fr;
+    max-width: 300px;
+    margin: 8px auto 24px;
+    grid-gap: 8px;
+}
+.overall-stats h5 {
+    font-size: 14px;
+}
+.overall-stats span {
+    align-self: end;
+}
+.overall-stats span.game-total {
+    font-family: 'Rock Salt', cursive;
+    font-size: 14px;
+    padding: 4px 0;
 }
 .progress {
     width: 90%;
