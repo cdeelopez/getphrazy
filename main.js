@@ -45,8 +45,7 @@ $(function() {
     const startGame = () => {
         todaysPhraze = phrases[todaysDayInYear() % phrases.length]
         guessme = todaysPhraze.phraze.toUpperCase()
-    
-        guessmeLetters = guessme.replaceAll(' ', '')
+        guessmeLetters = guessme.split(" ").join("")
         lettersCnt = guessmeLetters.length
 
         setupGame(guessme)
