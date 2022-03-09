@@ -88,7 +88,7 @@ $(function() {
         if(gameCompleted) return
         clearTimeout(showLetterTimer)
         showLetterTimer = undefined
-        setStats(grades.F, 101)
+        setStats(grades.F, 100)
         displayEndPopup(grades.F)
         gameCompleted = true
     }
@@ -114,11 +114,17 @@ $(function() {
 
     const showLetter = (isSettingUp) => {
         const letter = todaysPattern[counter % todaysPattern.length]
+        const isOddCounter = counter % 2 !== 0
+        let chr = -1
         if(!isSettingUp) setGameState(counter)
      
-        const chr = guessmeLetters.indexOf(letter)
+        if(isOddCounter) chr = guessmeLetters.indexOf(letter) 
+        else chr = guessmeLetters.lastIndexOf(letter)
+
         if(chr != -1) {
-            guessmeLetters = guessmeLetters.replace(letter, letter.toLowerCase())
+            const tempWrd = guessmeLetters.split("")
+            tempWrd[chr] = tempWrd[chr].toLowerCase()
+            guessmeLetters = tempWrd.join("")
             const el = $(".guessbox span").get(chr)
             $(el).text(letter)
             displayed++
@@ -362,7 +368,7 @@ const displayStats = () => {
     const arr = Object.values(gameGrades)
     const max = Math.max(...arr) || 5
     const gameTotal = arr.reduce((a, b) => a + b, 0)
-    const overallGrade = overallPct ? getGrade(overallPct / arr.length) : ""
+    const overallGrade = overallPct ? getGrade(overallPct / gameTotal) : ""
     const statsHtml =  `
         <div class="chart">
             <span data-grade="${grades.A}">&nbsp;</span>

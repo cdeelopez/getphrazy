@@ -115,7 +115,7 @@ $(function () {
     if (gameCompleted) return;
     clearTimeout(showLetterTimer);
     showLetterTimer = undefined;
-    setStats(grades.F, 101);
+    setStats(grades.F, 100);
     displayEndPopup(grades.F);
     gameCompleted = true;
   };
@@ -140,11 +140,15 @@ $(function () {
 
   var showLetter = function showLetter(isSettingUp) {
     var letter = todaysPattern[counter % todaysPattern.length];
+    var isOddCounter = counter % 2 !== 0;
+    var chr = -1;
     if (!isSettingUp) setGameState(counter);
-    var chr = guessmeLetters.indexOf(letter);
+    if (isOddCounter) chr = guessmeLetters.indexOf(letter);else chr = guessmeLetters.lastIndexOf(letter);
 
     if (chr != -1) {
-      guessmeLetters = guessmeLetters.replace(letter, letter.toLowerCase());
+      var tempWrd = guessmeLetters.split("");
+      tempWrd[chr] = tempWrd[chr].toLowerCase();
+      guessmeLetters = tempWrd.join("");
       var el = $(".guessbox span").get(chr);
       $(el).text(letter);
       displayed++;
@@ -372,7 +376,7 @@ var displayStats = function displayStats() {
   var gameTotal = arr.reduce(function (a, b) {
     return a + b;
   }, 0);
-  var overallGrade = overallPct ? getGrade(overallPct / arr.length) : "";
+  var overallGrade = overallPct ? getGrade(overallPct / gameTotal) : "";
   var statsHtml = "\n        <div class=\"chart\">\n            <span data-grade=\"".concat(grades.A, "\">&nbsp;</span>\n            <span data-grade=\"").concat(grades.B, "\">&nbsp;</span>\n            <span data-grade=\"").concat(grades.C, "\">&nbsp;</span>\n            <span data-grade=\"").concat(grades.D, "\">&nbsp;</span>\n            <span data-grade=\"").concat(grades.F, "\">&nbsp;</span>\n        </div>\n        <div class=\"chart-labels\">\n            <span class=\"").concat(grades.A, "\"></span>\n            <span class=\"").concat(grades.B, "\"></span>\n            <span class=\"").concat(grades.C, "\"></span>\n            <span class=\"").concat(grades.D, "\"></span>\n            <span class=\"").concat(grades.F, "\"></span>\n        </div>\n    ");
   var overallStatsHtml = "\n        <div class=\"overall-stats\">\n            <span class=\"game-total\">".concat(gameTotal, "</span>\n            <span class=\"grade ").concat(overallGrade, "\"></span>\n            <h5>Total Games Played</h5>\n            <h5>Overall Grade</h5>\n        </div>\n    ");
   el.html(statsHtml);
