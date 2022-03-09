@@ -437,6 +437,10 @@ var displayCountdown = function displayCountdown() {
   if (total <= 0 && typeof window.nextPhrazeInterval != 'undefined') {
     clearInterval(window.nextPhrazeInterval);
   }
+
+  if (hours === "00" && minutes === "00" && seconds === "00") {
+    location.reload();
+  }
 };
 
 var initNextPhrazeCountdown = function initNextPhrazeCountdown() {
