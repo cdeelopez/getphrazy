@@ -63,7 +63,7 @@ $(function() {
         if(todaysState.isComplete) {
             $(".popup.instructions").addClass("notransition").removeClass("initial-instructions show")
             displayEndPopup(todaysState.grade)
-            setupCompleteGame(todaysState.endLetters, todaysState.grade === grades.F)
+            setupCompleteGame(guessmeLetters, todaysState.grade === grades.F)
             $(".guess-now").prop("disabled",true)
             $(".progress-bar-timer").addClass("hide")
             $(".guessbox").addClass("playing")
