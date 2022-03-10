@@ -217,8 +217,7 @@ $(function () {
     }
   });
   $(".main-section").on("keyup", "input[type='text']", function (e) {
-    var inputs = $(e.target).closest(".guessbox").find("input[type='text']");
-    var ignoreKeyCodes = [37, 38, 39, 40, 16, 20]; // backspace
+    var inputs = $(e.target).closest(".guessbox").find("input[type='text']"); // backspace
 
     if (e.keyCode == 8) {
       inputs.eq(Math.max(inputs.index(e.target) - 1, 0)).val("").focus();
@@ -273,9 +272,10 @@ var getTodaysStat = function getTodaysStat() {
   }
 
   if (localStorage.getItem(items.TOTAL_PCT)) {
-    var _grades = localStorage.getItem(items.GRADES) || {};
+    var _grades = getObjectItem(items.GRADES);
 
     _grades[items.TOTAL_PCT] = localStorage.getItem(items.TOTAL_PCT) || 0;
+    localStorage.setItem(items.GRADES, JSON.stringify(_grades));
     localStorage.removeItem(items.TOTAL_PCT);
   }
 

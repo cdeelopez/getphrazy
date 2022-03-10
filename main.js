@@ -251,8 +251,9 @@ const getTodaysStat = () => {
         localStorage.removeItem(items.TOTAL_PCT)
     }
     if(localStorage.getItem(items.TOTAL_PCT)) {
-        const grades = localStorage.getItem(items.GRADES) || {}
+        const grades = getObjectItem(items.GRADES)
         grades[items.TOTAL_PCT] = localStorage.getItem(items.TOTAL_PCT) || 0
+        localStorage.setItem(items.GRADES, JSON.stringify(grades))
         localStorage.removeItem(items.TOTAL_PCT)
     }
     const lastPlayed = localStorage.getItem(items.LAST_PLAYED_PHRAZE)
