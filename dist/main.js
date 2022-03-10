@@ -439,7 +439,7 @@ var displayCountdown = function displayCountdown() {
     clearInterval(window.nextPhrazeInterval);
   }
 
-  if (hours === "00" && minutes === "00" && seconds === "00") {
+  if (hours === "00" && minutes === "00" && seconds === "01") {
     location.reload();
   }
 };
