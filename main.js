@@ -1,3 +1,8 @@
+/**
+ * Quick proj
+ * TODO: REFACTOR / CLEANUP!!!!
+ * 
+ */
 const setupGame = (guessme) => {
     let html = '<div>'
     let isSpace = false
@@ -56,24 +61,29 @@ $(function() {
         while(counter <= todaysState.counter)
             showLetter(true)
         if(todaysState.isComplete) {
+            $(".popup.instructions").addClass("notransition").removeClass("initial-instructions show")
             displayEndPopup(todaysState.grade)
+            setupCompleteGame(todaysState.endLetters, todaysState.grade === grades.F)
             $(".guess-now").prop("disabled",true)
+            $(".progress-bar-timer").addClass("hide")
+            $(".guessbox").addClass("playing")
         } else if(todaysState.guessCnt) {
+            $(".popup.instructions").addClass("notransition").removeClass("initial-instructions show")
             guessCnt = todaysState.guessCnt
             showCategory()
             onGuess(guessCnt)
         } else {
-            $(".popup.instructions").show()
             $(".popup.instructions .play-now").on("click", () => {
                 if(!todaysState.isComplete && !todaysState.guessCnt) {
                     if(typeof showLetterTimer !== 'undefined') clearTimeout(showLetterTimer)
                     showLetterTimer = setTimeout(() => showLetter(), LETTER_TIMER)
                 }
                 updateProgress(displayed, lettersCnt)
-                $(".popup.instructions").hide()
+                $(".popup.instructions").removeClass("initial-instructions show")
                 showCategory()
             })
         }
+        $("body").addClass("ready")
     }
 
     const showCategory = () => {
@@ -87,7 +97,7 @@ $(function() {
         if(gameCompleted) return
         clearTimeout(showLetterTimer)
         showLetterTimer = undefined
-        setStats(grades.F, 100)
+        setStats(grades.F, 100, guessmeLetters)
         displayEndPopup(grades.F)
         gameCompleted = true
     }
@@ -97,18 +107,29 @@ $(function() {
         let pct = (displayed / lettersCnt) * 100
         pct += (guessCnt - 1) * 5
         const grade = getGrade(pct)
-        setStats(grade, pct)
+        setStats(grade, pct, guessmeLetters)
         displayEndPopup(grade)
         gameCompleted = true
     }
 
     const displayEndPopup = (grade) => {
+        $(".guess-action").prop("disabled",true)
         $(".game-end-popup h3").text(messages[grade])
         $(".game-end-popup h2").addClass(grade)
                     .attr("data-grade", grade)
         if (grade === grades.F) $(".game-end-popup p").text(guessme)
         displayStats()
-        $(".game-end-popup").show()
+        $(".game-end-popup").addClass("show")
+    }
+
+    const displayOverallStatsPopup = () => {
+        if($(".game-end-popup h3").text() === "") $(".game-end-popup h3").text(messages.OVERALL)
+        displayStats()
+        $(".game-end-popup").addClass("show")
+    }
+
+    const displayInstructions = () => {
+        $(".popup.instructions").removeClass("notransition").addClass("non-actionable show")
     }
 
     const showLetter = (isSettingUp) => {
@@ -172,12 +193,19 @@ $(function() {
 
     $(".main-section").on("keyup", "input[type='text']", (e) => {
         const inputs = $(e.target).closest(".guessbox").find("input[type='text']")
+        // backspace
         if(e.keyCode == 8) {
             inputs.eq(Math.max(inputs.index(e.target) - 1, 0))
                 .val("")
                 .focus()
-        } else {
-            inputs.eq(inputs.index(e.target) + 1).focus();
+        } else if((e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 65 && e.keyCode <= 90)) { // a-z 0-9
+            if($(e.target).val() !== "") $(e.target).val(e.key)
+            inputs.eq(inputs.index(e.target) + 1).focus()
+        } else if(e.keyCode == 13) { // enter
+            $(".guess-check").click()
+        } else if(e.keyCode == 37) { // left arrow
+            inputs.eq(Math.max(inputs.index(e.target) - 1, 0))
+                .focus()
         }
     })
 
@@ -185,8 +213,30 @@ $(function() {
         const a = shareStats(guessme, guessmeLetters, guessCnt)
     })
 
+    $(".popup .close-popup").on("click", function() {
+        $(this).parents(".popup").removeClass("non-actionable show")
+    })
+
+    $(".popup").on("click", (e) => {
+        if($(e.target).hasClass("initial-instructions") || $(e.target).parents(".initial-instructions").length) return
+        if(!$(e.target).hasClass("popup-content") && !$(e.target).parents(".popup-content").length) {
+            $(".popup:not(.initial-instructions)").removeClass("show")
+        }
+    })
+
+    $("header .game-actions .game-stats").on("click", displayOverallStatsPopup)
+    $("header .game-actions .game-info").on("click", displayInstructions)
+
 
 });
+
+const setupCompleteGame = (endLetters, isFailed) => {
+   $(".guessbox").find("span").each(function(i) {
+        if(!$(this).text().trim().length) {
+            $(this).html(`<input class='${isFailed ? "wrong-letter": "correct-letter"}' type='text' maxlength='1' value='${endLetters.charAt(i) || ""}' disabled>`)
+        }
+    })
+}
 
 const setGameState = (counter) => {
     localStorage.setItem(items.GAME_STATE, `{ "counter": ${counter} }` )
@@ -198,6 +248,11 @@ const getTodaysStat = () => {
         localStorage.removeItem(items.LAST_PLAYED_DEP)
         localStorage.removeItem(items.GAME_STATE)
         localStorage.removeItem(items.GRADES)
+        localStorage.removeItem(items.TOTAL_PCT)
+    }
+    if(localStorage.getItem(items.TOTAL_PCT)) {
+        const grades = localStorage.getItem(items.GRADES) || {}
+        grades[items.TOTAL_PCT] = localStorage.getItem(items.TOTAL_PCT) || 0
         localStorage.removeItem(items.TOTAL_PCT)
     }
     const lastPlayed = localStorage.getItem(items.LAST_PLAYED_PHRAZE)
@@ -264,22 +319,21 @@ const setGameStateGuess = (guessCnt) => {
     localStorage.setItem(items.GAME_STATE, JSON.stringify(state))
 }
 
-const setStats = (grade, pct) => {
+const setStats = (grade, pct, guessmeLetters) => {
 
     const currStats = getObjectItem(items.GAME_STATE)
     currStats.didWin = grade != grades.F
     currStats.isComplete = true
     currStats.grade = grade
+    currStats.endLetters = guessmeLetters
     localStorage.setItem(items.GAME_STATE, JSON.stringify(currStats))
 
     const gameGrades = getObjectItem(items.GRADES)
     const currGradeCount = gameGrades[grade] || 0
     gameGrades[grade] = currGradeCount + 1
+    const totalPct = gameGrades[items.TOTAL_PCT] || 0
+    gameGrades[items.TOTAL_PCT] = parseFloat(totalPct) + parseFloat(pct)
     localStorage.setItem(items.GRADES, JSON.stringify(gameGrades))
-
-    const totalPct = localStorage.getItem(items.TOTAL_PCT) || 0
-    localStorage.setItem(items.TOTAL_PCT, parseFloat(totalPct) + parseFloat(pct))
-
 }
 
 const getGrade = (pct) => {
@@ -364,10 +418,13 @@ const replaceAt = (word, index, char) => {
 const displayStats = () => {
     const el = $(".game-end-popup .stats")
     const gameGrades = getObjectItem(items.GRADES)
-    const overallPct = localStorage.getItem(items.TOTAL_PCT)
-    const arr = Object.values(gameGrades)
-    const max = Math.max(...arr) || 5
-    const gameTotal = arr.reduce((a, b) => a + b, 0)
+    const overallPct = gameGrades[items.TOTAL_PCT] || 100
+    const gradeObj = Object.keys(gameGrades).
+                    filter((key) => key.includes('grade')).
+                    reduce((cur, key) => Object.assign(cur, { [key]: gameGrades[key] }), {})
+    const gradeArr = Object.values(gradeObj)
+    const max = Math.max(...gradeArr) || 5
+    const gameTotal = gradeArr.reduce((a, b) => a + b, 0)
     const overallGrade = overallPct ? getGrade(overallPct / gameTotal) : ""
     const statsHtml =  `
         <div class="chart">
@@ -394,8 +451,8 @@ const displayStats = () => {
         </div>
     `
   
-    el.html(statsHtml)
-    el.after(overallStatsHtml)
+    el.html(statsHtml + overallStatsHtml)
+    
     el.find(".chart span").each((i, el) => {
         const g = $(el).attr("data-grade")
         const ht = ((gameGrades[g] || 0) / max) * 100
@@ -497,7 +554,8 @@ const messages = {
     "grade-b": "You got it!",
     "grade-c": "Good Guess!",
     "grade-d": "Phew, that was close!",
-    "grade-f": "",
+    "grade-f": "Better luck next time?",
+    OVERALL: "Overall Game Stats"
 }
 
 const grades = {

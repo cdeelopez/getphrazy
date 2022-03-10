@@ -8,12 +8,19 @@ function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symb
 
 function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it["return"] != null) it["return"](); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
+/**
+ * Quick proj
+ * TODO: REFACTOR / CLEANUP!!!!
+ * 
+ */
 var setupGame = function setupGame(guessme) {
   var html = '<div>';
   var isSpace = false;
@@ -84,14 +91,18 @@ $(function () {
     }
 
     if (todaysState.isComplete) {
+      $(".popup.instructions").addClass("notransition").removeClass("initial-instructions show");
       displayEndPopup(todaysState.grade);
+      setupCompleteGame(todaysState.endLetters, todaysState.grade === grades.F);
       $(".guess-now").prop("disabled", true);
+      $(".progress-bar-timer").addClass("hide");
+      $(".guessbox").addClass("playing");
     } else if (todaysState.guessCnt) {
+      $(".popup.instructions").addClass("notransition").removeClass("initial-instructions show");
       guessCnt = todaysState.guessCnt;
       showCategory();
       onGuess(guessCnt);
     } else {
-      $(".popup.instructions").show();
       $(".popup.instructions .play-now").on("click", function () {
         if (!todaysState.isComplete && !todaysState.guessCnt) {
           if (typeof showLetterTimer !== 'undefined') clearTimeout(showLetterTimer);
@@ -101,10 +112,12 @@ $(function () {
         }
 
         updateProgress(displayed, lettersCnt);
-        $(".popup.instructions").hide();
+        $(".popup.instructions").removeClass("initial-instructions show");
         showCategory();
       });
     }
+
+    $("body").addClass("ready");
   };
 
   var showCategory = function showCategory() {
@@ -115,7 +128,7 @@ $(function () {
     if (gameCompleted) return;
     clearTimeout(showLetterTimer);
     showLetterTimer = undefined;
-    setStats(grades.F, 100);
+    setStats(grades.F, 100, guessmeLetters);
     displayEndPopup(grades.F);
     gameCompleted = true;
   };
@@ -125,17 +138,28 @@ $(function () {
     var pct = displayed / lettersCnt * 100;
     pct += (guessCnt - 1) * 5;
     var grade = getGrade(pct);
-    setStats(grade, pct);
+    setStats(grade, pct, guessmeLetters);
     displayEndPopup(grade);
     gameCompleted = true;
   };
 
   var displayEndPopup = function displayEndPopup(grade) {
+    $(".guess-action").prop("disabled", true);
     $(".game-end-popup h3").text(messages[grade]);
     $(".game-end-popup h2").addClass(grade).attr("data-grade", grade);
     if (grade === grades.F) $(".game-end-popup p").text(guessme);
     displayStats();
-    $(".game-end-popup").show();
+    $(".game-end-popup").addClass("show");
+  };
+
+  var displayOverallStatsPopup = function displayOverallStatsPopup() {
+    if ($(".game-end-popup h3").text() === "") $(".game-end-popup h3").text(messages.OVERALL);
+    displayStats();
+    $(".game-end-popup").addClass("show");
+  };
+
+  var displayInstructions = function displayInstructions() {
+    $(".popup.instructions").removeClass("notransition").addClass("non-actionable show");
   };
 
   var showLetter = function showLetter(isSettingUp) {
@@ -194,17 +218,46 @@ $(function () {
   });
   $(".main-section").on("keyup", "input[type='text']", function (e) {
     var inputs = $(e.target).closest(".guessbox").find("input[type='text']");
+    var ignoreKeyCodes = [37, 38, 39, 40, 16, 20]; // backspace
 
     if (e.keyCode == 8) {
       inputs.eq(Math.max(inputs.index(e.target) - 1, 0)).val("").focus();
-    } else {
+    } else if (e.keyCode >= 48 && e.keyCode <= 57 || e.keyCode >= 65 && e.keyCode <= 90) {
+      // a-z 0-9
+      if ($(e.target).val() !== "") $(e.target).val(e.key);
       inputs.eq(inputs.index(e.target) + 1).focus();
+    } else if (e.keyCode == 13) {
+      // enter
+      $(".guess-check").click();
+    } else if (e.keyCode == 37) {
+      // left arrow
+      inputs.eq(Math.max(inputs.index(e.target) - 1, 0)).focus();
     }
   });
   $(".bottom-bar .share").on("click", function () {
     var a = shareStats(guessme, guessmeLetters, guessCnt);
   });
+  $(".popup .close-popup").on("click", function () {
+    $(this).parents(".popup").removeClass("non-actionable show");
+  });
+  $(".popup").on("click", function (e) {
+    if ($(e.target).hasClass("initial-instructions") || $(e.target).parents(".initial-instructions").length) return;
+
+    if (!$(e.target).hasClass("popup-content") && !$(e.target).parents(".popup-content").length) {
+      $(".popup:not(.initial-instructions)").removeClass("show");
+    }
+  });
+  $("header .game-actions .game-stats").on("click", displayOverallStatsPopup);
+  $("header .game-actions .game-info").on("click", displayInstructions);
 });
+
+var setupCompleteGame = function setupCompleteGame(endLetters, isFailed) {
+  $(".guessbox").find("span").each(function (i) {
+    if (!$(this).text().trim().length) {
+      $(this).html("<input class='".concat(isFailed ? "wrong-letter" : "correct-letter", "' type='text' maxlength='1' value='").concat(endLetters.charAt(i) || "", "' disabled>"));
+    }
+  });
+};
 
 var setGameState = function setGameState(counter) {
   localStorage.setItem(items.GAME_STATE, "{ \"counter\": ".concat(counter, " }"));
@@ -216,6 +269,13 @@ var getTodaysStat = function getTodaysStat() {
     localStorage.removeItem(items.LAST_PLAYED_DEP);
     localStorage.removeItem(items.GAME_STATE);
     localStorage.removeItem(items.GRADES);
+    localStorage.removeItem(items.TOTAL_PCT);
+  }
+
+  if (localStorage.getItem(items.TOTAL_PCT)) {
+    var _grades = localStorage.getItem(items.GRADES) || {};
+
+    _grades[items.TOTAL_PCT] = localStorage.getItem(items.TOTAL_PCT) || 0;
     localStorage.removeItem(items.TOTAL_PCT);
   }
 
@@ -287,18 +347,19 @@ var setGameStateGuess = function setGameStateGuess(guessCnt) {
   localStorage.setItem(items.GAME_STATE, JSON.stringify(state));
 };
 
-var setStats = function setStats(grade, pct) {
+var setStats = function setStats(grade, pct, guessmeLetters) {
   var currStats = getObjectItem(items.GAME_STATE);
   currStats.didWin = grade != grades.F;
   currStats.isComplete = true;
   currStats.grade = grade;
+  currStats.endLetters = guessmeLetters;
   localStorage.setItem(items.GAME_STATE, JSON.stringify(currStats));
   var gameGrades = getObjectItem(items.GRADES);
   var currGradeCount = gameGrades[grade] || 0;
   gameGrades[grade] = currGradeCount + 1;
+  var totalPct = gameGrades[items.TOTAL_PCT] || 0;
+  gameGrades[items.TOTAL_PCT] = parseFloat(totalPct) + parseFloat(pct);
   localStorage.setItem(items.GRADES, JSON.stringify(gameGrades));
-  var totalPct = localStorage.getItem(items.TOTAL_PCT) || 0;
-  localStorage.setItem(items.TOTAL_PCT, parseFloat(totalPct) + parseFloat(pct));
 };
 
 var getGrade = function getGrade(pct) {
@@ -371,17 +432,21 @@ var replaceAt = function replaceAt(word, index, _char) {
 var displayStats = function displayStats() {
   var el = $(".game-end-popup .stats");
   var gameGrades = getObjectItem(items.GRADES);
-  var overallPct = localStorage.getItem(items.TOTAL_PCT);
-  var arr = Object.values(gameGrades);
-  var max = Math.max.apply(Math, _toConsumableArray(arr)) || 5;
-  var gameTotal = arr.reduce(function (a, b) {
+  var overallPct = gameGrades[items.TOTAL_PCT] || 100;
+  var gradeObj = Object.keys(gameGrades).filter(function (key) {
+    return key.includes('grade');
+  }).reduce(function (cur, key) {
+    return Object.assign(cur, _defineProperty({}, key, gameGrades[key]));
+  }, {});
+  var gradeArr = Object.values(gradeObj);
+  var max = Math.max.apply(Math, _toConsumableArray(gradeArr)) || 5;
+  var gameTotal = gradeArr.reduce(function (a, b) {
     return a + b;
   }, 0);
   var overallGrade = overallPct ? getGrade(overallPct / gameTotal) : "";
   var statsHtml = "\n        <div class=\"chart\">\n            <span data-grade=\"".concat(grades.A, "\">&nbsp;</span>\n            <span data-grade=\"").concat(grades.B, "\">&nbsp;</span>\n            <span data-grade=\"").concat(grades.C, "\">&nbsp;</span>\n            <span data-grade=\"").concat(grades.D, "\">&nbsp;</span>\n            <span data-grade=\"").concat(grades.F, "\">&nbsp;</span>\n        </div>\n        <div class=\"chart-labels\">\n            <span class=\"").concat(grades.A, "\"></span>\n            <span class=\"").concat(grades.B, "\"></span>\n            <span class=\"").concat(grades.C, "\"></span>\n            <span class=\"").concat(grades.D, "\"></span>\n            <span class=\"").concat(grades.F, "\"></span>\n        </div>\n    ");
   var overallStatsHtml = "\n        <div class=\"overall-stats\">\n            <span class=\"game-total\">".concat(gameTotal, "</span>\n            <span class=\"grade ").concat(overallGrade, "\"></span>\n            <h5>Total Games Played</h5>\n            <h5>Overall Grade</h5>\n        </div>\n    ");
-  el.html(statsHtml);
-  el.after(overallStatsHtml);
+  el.html(statsHtml + overallStatsHtml);
   el.find(".chart span").each(function (i, el) {
     var g = $(el).attr("data-grade");
     var ht = (gameGrades[g] || 0) / max * 100;
@@ -478,7 +543,8 @@ var messages = {
   "grade-b": "You got it!",
   "grade-c": "Good Guess!",
   "grade-d": "Phew, that was close!",
-  "grade-f": ""
+  "grade-f": "Better luck next time?",
+  OVERALL: "Overall Game Stats"
 };
 var grades = {
   A: "grade-a",

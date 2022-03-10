@@ -1,30 +1,54 @@
 body {
     font-family: 'Fredoka', sans-serif;
     text-align: center;
+    opacity: 0;
+}
+body.ready {
+    opacity: 1;
+}
+header {
+    position: relative;
+    color: #355071;
+    max-width: 800px;
+    margin: 0 auto;
+    font-size: 22px;
+}
+header.popup-header {
+    color: #fff;
 }
 .title {
-    font-family: 'Special Elite', cursive;
-    color: #3572be;
-    font-size: 26px;
-    margin-top: 16px;
+    margin-top: 24px;
 }
 .title span {
+    font-family: 'Special Elite', cursive;
     font-size: 1em;
     margin-right: 8px;
 }
 .title strong {
+    font-family: 'Rock Salt', cursive;
     font-size: 1.6em;
 }
 .popup .title {
     color: white;
-    margin-top: 24px;
+    margin-top: 32px;
+}
+.game-actions {
+    position: absolute;
+    top: 50%;
+    right: 24px;
+    transform: translate(0,-50%);
+    font-size: 1em;
+}
+.game-actions i {
+    padding: 8px;
+    cursor: pointer;
 }
 .main-section {
     margin: 16px auto;
     max-width: 800px;
 }
 .guessbox {
-    margin: 40px 8px 60px;
+    margin: 60px 8px;
     position: relative;
     display: flex;
     justify-content: center;
@@ -74,8 +98,12 @@ body {
     text-transform: none;
     margin-top: 4px;
 }
+.guess-now:not(:disabled):hover:after {
+   transform: scale(1.05);
+}
 .guess-now:after {
-    content: "(No turning back!)";
+    content: "(This is where the clues end.)";
+    transition: all 0.3s ease-in-out;
 }
 .guess-check:after {
     content: "(With confidence.)";
@@ -126,10 +154,16 @@ body {
     letter-spacing: 1px;
     border: none;
     border-radius: 4px;
-    background: #3572be;
+    background: #355071;
     padding: 6px 24px;
     color: white;
     cursor: pointer;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    transition: all 0.2s ease-in-out;
+}
+.guess-action:active {
+    transform: scale(0.98);
+    
 }
 .guess-action:disabled,
 .guess-action[disabled]{
@@ -151,15 +185,34 @@ body {
     bottom: 0;
     background: rgba(0,0,0,0.5);
     z-index: 100;
-    display: none;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s ease-in-out 0.2s, opacity 0.2s ease-in-out;
+}
+.popup.show {
+    visibility: visible;
+    opacity: 1;
+    transition: visibility 0s ease-in-out, opacity 0.2s ease-in-out  0.2s;
+}
+.popup.notransition, .popup.show.notransition {
+    transition: none;
 }
 .popup.instructions {
-    background: #3572be;
-    font-family: 'Special Elite', cursive;
-    font-size: 16px;
+    font-size: 18px;
     line-height: 1.2em;
+    color: #355071;
 }
-.popup .content {
+.popup.initial-instructions {
+    background: #355071;
+}
+.popup.initial-instructions .close-popup {
+    display: none;
+}
+.popup.non-actionable header,
+.popup.non-actionable .play-now {
+    display: none;
+}
+.popup .popup-content {
     max-width: 90vw;
     min-width: 300px;
     background: white;
@@ -171,23 +224,28 @@ body {
     padding: 24px;
     border-radius: 4px;
 }
-.popup.instructions .content ol {
+.popup.instructions .popup-content ol {
     text-align: left;
 }
-.popup.instructions .content li {
+.popup.instructions .popup-content li {
     margin-bottom: 16px;
 }
 .popup.instructions li.emphasize {
     font-size: 20px;
     letter-spacing: 1px;
     margin-bottom: 24px;
+    display: inline-block;
 }
 .popup.instructions li.highlight {
     color: #d21818;
+    font-weight: bold;
+}
+.popup.instructions .phrazy {
+    font-family: 'Rock Salt', cursive;
 }
 .popup .share {
     padding: 8px;
-    background: #3572be;
+    background: #355071;
     border-radius: 4px;
     color: white;
     cursor: pointer;
@@ -209,6 +267,14 @@ body {
     border: 1px solid rgb(168, 166, 166);
     border-radius: 4px;
     transition: all 0.3s ease-in-out;
+}
+.guessbox input.wrong-letter {
+    background: #d21818;
+    color: white;
+}
+.guessbox input.correct-letter {
+    background: #2b922b;
+    color: white;
 }
 .guessbox.wrong-guess span{
     transition: all 0.3s ease-in-out;
@@ -311,6 +377,14 @@ body {
 }
 .popup .bottom-bar .next-phraze span {
     font-size: 22px;
+}
+.popup .fa-xmark {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    font-size: 18px;
+    padding: 16px;
+    cursor: pointer;
 }
 .stats {
     position: relative;
@@ -445,5 +519,17 @@ body {
     to {
         transform: scale(1);
         top: -12px;
+    }
+  }
+
+  @media only screen and (max-width: 768px) {
+    header {
+        font-size: 16px;
+    }
+    header .game-actions {
+        right: 8px;
+    }
+    .guessbox {
+        margin: 40px 8px;
     }
   }

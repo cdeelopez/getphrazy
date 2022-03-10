@@ -32,7 +32,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500&family=Rock+Salt&family=Special+Elite&display=swap" rel="stylesheet">
         <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
         <script src="https://kit.fontawesome.com/eda7aa5adb.js" crossorigin="anonymous"></script>
-        <script src="dist/main-min.js"></script>
+        <script src="main.js"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css" integrity="sha512-NmLkDIU1C/C88wi324HBc+S2kLhi08PN5GDeUVVVC/BVt/9Izdsc9SVeVfA1UZbY3sHUlDSyRXhCzHfr6hmPPw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <link rel="stylesheet" type="text/css" href="style.css">
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-SM6WP6DC54"></script>
@@ -45,7 +45,14 @@
         </script>
     </head>
     <body>
-        <h1 class="title"><span>get</span><strong>Phrazy</strong></h1>
+        <header>
+            <h1 class="title"><span>get</span><strong>Phrazy</strong></h1>
+            <div class="game-actions">
+                <i class="fa fa-solid fa-bars-progress game-stats" title="Game Stats"></i>
+                <i class="fa fa-solid fa-circle-info game-info" title="Game Instructions"></i>
+            </div>
+        </header>
+        
         <div class="main-section">
             <div class="guessbox">
                 <h2></h2>
@@ -69,8 +76,28 @@
             <button type="button" class="guess-action guess-now">I'd Like to Guess</button>
             <button type="button" class="guess-action guess-check">Submit</button>
            
+            <div class="popup instructions initial-instructions show">
+                <header class="popup-header">
+                    <h2 class="title"><span>get</span><strong>Phrazy</strong></h2>
+                    <div class="game-actions">
+                        <i class="fa fa-solid fa-bars-progress game-stats" title="Game Stats"></i>
+                    </div>
+                </header>
+                <div class="popup-content content">
+                    <i class="fa fa-solid fa-xmark close-popup"></i>
+                    <ol>
+                        <li class="emphasize">Guess the <span class="phrazy">phraze</span> of the day!</li>
+                        <li>Letters will appear every 5 seconds. </li>
+                        <li class="highlight">Once you start guessing, the timer stops and no new letters will be shown.</li>
+                        <li>You have 3 chances to guess the right <span class="phrazy">phraze</span>.</li>
+                        <li>The sooner you guess, the higher the grade!</li>
+                    </ol>
+                    <button type="button" class="guess-action play-now">Play Now!</button>
+                </div>
+            </div>
             <div class="popup game-end-popup">
-                <div class="content">
+                <div class="popup-content content">
+                    <i class="fa fa-solid fa-xmark close-popup"></i>
                     <h3></h3>
                     <h2 class="grade"></h2>
                     <p></p>
@@ -80,19 +107,6 @@
                         <span class="share"><i class="fa fa-solid fa-share-from-square"></i></span>
                     </div>
                     
-                </div>
-            </div>
-            <div class="popup instructions">
-                <h2 class="title"><span>get</span><strong>Phrazy</strong></h2>
-                <div class="content">
-                    <ol>
-                        <li class="emphasize">Guess the Phraze!</li>
-                        <li>Letters will appear every 5 seconds. </li>
-                        <li class="highlight">Once you start guessing, the timer stops and no new letters will be shown.</li>
-                        <li>You have 3 chances to guess the right phraze.</li>
-                        <li>The sooner you guess, the higher the grade!</li>
-                    </ol>
-                    <button type="button" class="guess-action play-now">Play Now!</button>
                 </div>
             </div>
         </div>
