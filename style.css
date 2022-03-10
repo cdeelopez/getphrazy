@@ -59,13 +59,13 @@ body {
 .main-section.guess-mode .guess-chances {
     opacity: 1;
 }
-.main-section.guess-mode .guess-check {
+.main-section.guess-mode .guess-actions {
     display: inline-block;
 }
 .main-section.guess-mode .guess-now {
     display: none;
 }
-.main-section .guess-check {
+.main-section .guess-actions {
     display: none;
 }
 .guess-action:after {
@@ -79,6 +79,9 @@ body {
 }
 .guess-check:after {
     content: "(With confidence.)";
+}
+.guess-cancel:after {
+    content: "(I need more clues.)";
 }
 .guess-chances span {
     font-family: 'Rock Salt', cursive;
@@ -140,8 +143,14 @@ body {
 .guess-action.play-now {
     margin-top: 8px;
 }
+.guess-cancel {
+    background: #d21818;
+}
 .guess-action.play-now:after {
     content: "(I accept all risks.)";
+}
+.guess-action.resume-game:after {
+    content: "(Let me back in!)";
 }
 .popup {
     position: absolute;
@@ -184,6 +193,9 @@ body {
 }
 .popup.instructions li.highlight {
     color: #d21818;
+}
+.popup.instructions .resume-game ol {
+    text-align: center;
 }
 .popup .share {
     padding: 8px;

@@ -9,7 +9,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500&family=Rock+Salt&family=Special+Elite&display=swap" rel="stylesheet">
         <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
         <script src="https://kit.fontawesome.com/eda7aa5adb.js" crossorigin="anonymous"></script>
-        <script src="dist/main-min.js"></script>
+        <script src="main.js"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css" integrity="sha512-NmLkDIU1C/C88wi324HBc+S2kLhi08PN5GDeUVVVC/BVt/9Izdsc9SVeVfA1UZbY3sHUlDSyRXhCzHfr6hmPPw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <link rel="stylesheet" type="text/css" href="style.css">
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-39LPKY5PZJ"></script>
@@ -44,7 +44,10 @@
                 <div class="progress-bar-timer"></div>
             </div>
             <button type="button" class="guess-action guess-now">I'd Like to Guess</button>
-            <button type="button" class="guess-action guess-check">Submit</button>
+            <div class="guess-actions">
+                <button type="button" class="guess-action guess-check">Submit</button>
+                <button type="button" class="guess-action guess-cancel">Cancel</button>
+            </div>
            
             <div class="popup game-end-popup">
                 <div class="content">
@@ -61,7 +64,7 @@
             </div>
             <div class="popup instructions">
                 <h2 class="title"><span>get</span><strong>Phrazy</strong></h2>
-                <div class="content">
+                <div class="content new-game">
                     <ol>
                         <li class="emphasize">Guess the Phraze!</li>
                         <li>Letters will appear every 5 seconds. </li>
@@ -70,6 +73,12 @@
                         <li>The sooner you guess, the higher the grade!</li>
                     </ol>
                     <button type="button" class="guess-action play-now">Play Now!</button>
+                </div>
+                <div class="content resume-game">
+                    <ol>
+                        <li class="emphasize">Game in Progress...</li>
+                    </ol>
+                    <button type="button" class="guess-action play-now resume-game">Resume Game</button>
                 </div>
             </div>
         </div>

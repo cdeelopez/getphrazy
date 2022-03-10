@@ -64,6 +64,9 @@ $(function () {
   var displayed = 0;
   var guessCnt = 1;
   var gameCompleted = false;
+  $(window).blur(function () {
+    location.reload();
+  });
   getPhrases(function (p) {
     phrases = p;
     startGame();
@@ -91,6 +94,7 @@ $(function () {
       showCategory();
       onGuess(guessCnt);
     } else {
+      if (todaysState.counter) $(".popup.instructions .new-game").hide();else $(".popup.instructions .resume-game").remove();
       $(".popup.instructions").show();
       $(".popup.instructions .play-now").on("click", function () {
         if (!todaysState.isComplete && !todaysState.guessCnt) {
@@ -236,7 +240,7 @@ var getObjectItem = function getObjectItem(key) {
 };
 
 var onGuess = function onGuess(guessCnt) {
-  setToGuessMode();
+  setToGuessMode(true);
   $(".progress-bar-timer").addClass("hide");
   $(".guess-chances span").slice(0, (guessCnt || 1) - 1).addClass("lost");
   setGameStateGuess(guessCnt || 1);
@@ -246,6 +250,11 @@ var onGuess = function onGuess(guessCnt) {
     }
   });
   $(".guessbox input").first().focus();
+};
+
+var onGuessCancel = function onGuessCancel() {
+  setToGuessMode(false);
+  $(".guessbox span input[type='text']").remove();
 };
 
 var onGuessSubmit = function onGuessSubmit(answer) {
@@ -276,9 +285,12 @@ var onGuessSubmit = function onGuessSubmit(answer) {
   return false;
 };
 
-var setToGuessMode = function setToGuessMode() {
-  $(".main-section").addClass("guess-mode");
-  $(".guess-now").remove();
+var setToGuessMode = function setToGuessMode(isGuessMode) {
+  if (isGuessMode) {
+    $(".main-section").addClass("guess-mode");
+  } else {
+    $(".main-section").removeClass("guess-mode");
+  }
 };
 
 var setGameStateGuess = function setGameStateGuess(guessCnt) {
