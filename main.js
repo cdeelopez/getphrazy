@@ -22,6 +22,8 @@ const getPhrases = (cb) => {
         console.log("An error has occurred.")
     });
 }
+let letterPct
+
 $(function() {
     const todaysDt = new Date()
     const todaysPattern = pattern[todaysDt.getDay()]
@@ -34,7 +36,13 @@ $(function() {
     let showLetterTimer
     let displayed = 0
     let guessCnt = 1
+    let cancelCnt = 0
     let gameCompleted = false
+    
+
+    // $(window).blur(function(){
+    //     location.reload()
+    // })
 
     getPhrases((p) => {
         phrases = p
@@ -55,6 +63,10 @@ $(function() {
     
         while(counter <= todaysState.counter)
             showLetter(true)
+
+        if(todaysState.cancelCnt) {
+            cancelCnt = todaysState.cancelCnt
+        }
         if(todaysState.isComplete) {
             displayEndPopup(todaysState.grade)
             $(".guess-now").prop("disabled",true)
@@ -63,13 +75,15 @@ $(function() {
             showCategory()
             onGuess(guessCnt)
         } else {
+            if(todaysState.counter) $(".popup.instructions .new-game").hide()
+            else $(".popup.instructions .resume-game").remove()
             $(".popup.instructions").show()
             $(".popup.instructions .play-now").on("click", () => {
                 if(!todaysState.isComplete && !todaysState.guessCnt) {
                     if(typeof showLetterTimer !== 'undefined') clearTimeout(showLetterTimer)
                     showLetterTimer = setTimeout(() => showLetter(), LETTER_TIMER)
                 }
-                updateProgress(displayed, lettersCnt)
+                updateProgress(displayed, lettersCnt, guessCnt, cancelCnt)
                 $(".popup.instructions").hide()
                 showCategory()
             })
@@ -95,7 +109,7 @@ $(function() {
     const winGame = () => {
         if(gameCompleted) return
         let pct = (displayed / lettersCnt) * 100
-        pct += (guessCnt - 1) * 5
+        pct += (guessCnt - 1 + cancelCnt) * letterPct
         const grade = getGrade(pct)
         setStats(grade, pct)
         displayEndPopup(grade)
@@ -128,7 +142,7 @@ $(function() {
             $(el).text(letter)
             displayed++
             counter++
-            updateProgress(displayed, lettersCnt)
+            updateProgress(displayed, lettersCnt, guessCnt, cancelCnt)
             if(!isSettingUp) {
                 if(typeof showLetterTimer !== 'undefined') clearTimeout(showLetterTimer)
                 showLetterTimer = setTimeout(() => showLetter(isSettingUp), LETTER_TIMER)
@@ -156,18 +170,27 @@ $(function() {
         else if(isCorrect === false) {
             guessCnt++
             $(".guess-chances span").slice(0, (guessCnt || 1)-1).addClass("lost")
-            updateProgressFromWrongGuess(displayed, lettersCnt, guessCnt)
+            updateProgress(displayed, lettersCnt, guessCnt, cancelCnt)
             setGameStateGuess(guessCnt)
             
             $(".guessbox").addClass("wrong-guess")
             setTimeout(() => {
                 $(".guessbox").removeClass("wrong-guess")
-                $(".guessbox input").val("")
                 $(".guessbox input").first().focus()
                 if(guessCnt > MAX_GUESS) endGame()
             }, 1000)
             
         }
+    })
+    $(".guess-cancel").on("click", () => {
+        cancelCnt++
+        setToGuessMode(false)
+        setGameStateCancel(cancelCnt)
+        updateProgress(displayed, lettersCnt, guessCnt, cancelCnt)
+        $(".guessbox span input[type='text']").remove()
+        $(".progress-bar-timer").addClass("hide")
+        if(typeof showLetterTimer !== 'undefined') clearTimeout(showLetterTimer)
+        showLetterTimer = setTimeout(() => showLetter(), LETTER_TIMER)
     })
 
     $(".main-section").on("keyup", "input[type='text']", (e) => {
@@ -177,6 +200,7 @@ $(function() {
                 .val("")
                 .focus()
         } else {
+            if($(e.target).val() != "") $(e.target).val(e.key)
             inputs.eq(inputs.index(e.target) + 1).focus();
         }
     })
@@ -216,7 +240,7 @@ const getObjectItem = (key) => {
 }
 
 const onGuess = (guessCnt) => {
-    setToGuessMode()
+    setToGuessMode(true)
     $(".progress-bar-timer").addClass("hide")
     $(".guess-chances span").slice(0, (guessCnt || 1)-1).addClass("lost")
     setGameStateGuess(guessCnt || 1)
@@ -253,14 +277,23 @@ const onGuessSubmit = (answer) => {
     return false
 }
 
-const setToGuessMode = () => {
-    $(".main-section").addClass("guess-mode")
-    $(".guess-now").remove()
+const setToGuessMode = (isGuessMode) => {
+    if(isGuessMode) {
+        $(".main-section").addClass("guess-mode")
+    } else {
+        $(".main-section").removeClass("guess-mode")
+    }
 }
 
 const setGameStateGuess = (guessCnt) => {
     const state = getObjectItem(items.GAME_STATE)
     state.guessCnt = guessCnt
+    localStorage.setItem(items.GAME_STATE, JSON.stringify(state))
+}
+
+const setGameStateCancel = (cancelCnt) => {
+    const state = getObjectItem(items.GAME_STATE)
+    state.cancelCnt = cancelCnt
     localStorage.setItem(items.GAME_STATE, JSON.stringify(state))
 }
 
@@ -403,21 +436,23 @@ const displayStats = () => {
     })
 }
 
-const updateProgress = (displayed, lettersCnt) => {
-    const p = (displayed / lettersCnt) * 100
-    const ptimer = Math.min(((displayed+1) / lettersCnt) * 100, 100)
+const updateProgress = (displayed, lettersCnt, guessCnt, cancelCnt) => {
+    let p = (displayed / lettersCnt) * 100
+    let ptimer = Math.min(((displayed+1) / lettersCnt) * 100, 100)
+    p += (guessCnt - 1 + cancelCnt) * letterPct
+    ptimer += (guessCnt - 1 + cancelCnt) * letterPct
     $(".progress-bar-cover").css("width", `${p}%`)
     $(".progress-bar-timer").css("width", `${ptimer}%`)
 }
 
-const updateProgressFromWrongGuess = (displayed, lettersCnt, guessCnt) => {
-    let pct = (displayed / lettersCnt) * 100
-    pct += (guessCnt - 1) * 5
-    $(".progress-bar-cover").css("width", `${pct}%`)
-}
+// const updateProgressFromPenalty = (displayed, lettersCnt, guessCnt, cancelCnt) => {
+//     let pct = (displayed / lettersCnt) * 100
+//     pct += (guessCnt - 1 + cancelCnt) * letterPct
+//     $(".progress-bar-cover").css("width", `${pct}%`)
+// }
 
 const initProgress = (lettersCnt) => {
-    const letterPct = (1 / lettersCnt) * 100
+    letterPct = (1 / lettersCnt) * 100
     for(let i=0; i<lettersCnt - 1; i++) {
         $(".progress-bar").append(`<small class="divider" style="left:${letterPct * (i+1)}%"></small>`)
     }
@@ -515,4 +550,3 @@ const emojis = {
 
 const MAX_GUESS = 3
 const LETTER_TIMER = 5000
-const GUESS_PENALTY = 5
