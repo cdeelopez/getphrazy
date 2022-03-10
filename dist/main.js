@@ -317,6 +317,7 @@ var shareStats = function shareStats(origWord, word, guessCnt) {
   if (navigator.share) {
     navigator.share({
       title: "Get Phrazy",
+      url: "https://getphrazy.com/",
       text: $(".share-msg").html()
     }).then(function () {
       console.log('Thanks for sharing!');

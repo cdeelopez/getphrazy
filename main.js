@@ -303,6 +303,7 @@ ${buildPhraseStatus(origWord, word, grade)}`
     if (navigator.share) {
         navigator.share({
           title: "Get Phrazy",
+          url: "https://getphrazy.com/",
           text: $(".share-msg").html()
         }).then(() => {
           console.log('Thanks for sharing!');
