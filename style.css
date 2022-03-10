@@ -177,6 +177,9 @@ header.popup-header {
 .guess-action.play-now:after {
     content: "(I accept all risks.)";
 }
+.guess-action.resume:after {
+    content: "(Let me back in!)";
+}
 .popup {
     position: absolute;
     top: 0;
@@ -232,13 +235,12 @@ header.popup-header {
 }
 .popup.instructions li.emphasize {
     font-size: 20px;
-    letter-spacing: 1px;
+    font-weight: bold;
     margin-bottom: 24px;
     display: inline-block;
 }
 .popup.instructions li.highlight {
     color: #d21818;
-    font-weight: bold;
 }
 .popup.instructions .phrazy {
     font-family: 'Rock Salt', cursive;

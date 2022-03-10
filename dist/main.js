@@ -103,6 +103,10 @@ $(function () {
       showCategory();
       onGuess(guessCnt);
     } else {
+      if (todaysState.counter >= 0) {
+        $(".popup.instructions .play-now").text("Resume Game").addClass("resume");
+      }
+
       $(".popup.instructions .play-now").on("click", function () {
         if (!todaysState.isComplete && !todaysState.guessCnt) {
           if (typeof showLetterTimer !== 'undefined') clearTimeout(showLetterTimer);
