@@ -57,6 +57,16 @@ const emojis = {
     RED_BOX: "&#128997;" 
 }
 
+const actions = {
+    SPLASH_PAGE: "splash_page",
+    START_NEW_GAME: "start_new_game ",
+    RESUME_GAME: "resume_game",
+    COMPLETE_GAME: "game_completed",
+    GUESS_CLICK: "guess_clicked",
+    SHARE_CLICK: "share_clicked",
+    INFO_CLICK: "info_clicked"
+}
+
 const MAX_GUESS = 3
 const LETTER_TIMER = 5000
 
@@ -261,10 +271,14 @@ const setupInitGameState = () => {
     } else { 
         if(gameStateInfo.inProgressLetterCounter >= 0) {
             $(".popup.instructions .play-now").text("Resume Game").addClass("resume")
-        }
-        $(".popup.instructions .play-now").on("click", () => {
+            sendEvent(actions.SPLASH_PAGE, { status: actions.RESUME_GAME })
+        } else sendEvent(actions.SPLASH_PAGE, { status: actions.START_NEW_GAME })
+        $(".popup.instructions .play-now").on("click", (e) => {
             clearShowLetterTimeout()
             window.showLetterTimer = setTimeout(() => showLetter(), LETTER_TIMER)
+
+            if($(e.target).hasClass("resume")) sendEvent(actions.RESUME_GAME, { counter: gameStateInfo.inProgressLetterCounter, guessCount: gameStateInfo.guessCount})
+            else sendEvent(actions.START_NEW_GAME, {}) 
             
             updateProgressBar()
             $(".popup.instructions").removeClass("initial-instructions show")
@@ -404,6 +418,9 @@ const completeGame = () => {
         pct += (Math.max(gameStateInfo.guessCount - 1, 0)) * phrazeInfo.letterPercent
         grade = getGrade(pct)
     }
+
+    const gamestate = getObjectItem(items.GAME_STATE)
+    if(!gamestate.isComplete) sendEvent(actions.COMPLETE_GAME, { grade: grade, pct: pct, guessCount: gameStateInfo.guessCount })
 
     setCompleteGameStats(grade, pct)
 
@@ -641,6 +658,12 @@ const addEventListeners = () => {
 const getObjectItem = (key) => {
     const state = localStorage.getItem(key) || "{}"
     return $.parseJSON(state)
+}
+
+const sendEvent = (action, values) => {
+    if(window.gtag) {
+        gtag("event", action, { data: JSON.stringify(values) })
+    }
 }
 
 const startGame = () => {

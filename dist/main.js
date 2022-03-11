@@ -67,6 +67,15 @@ var emojis = {
   REVEALED_BOX: "&#128307;",
   RED_BOX: "&#128997;"
 };
+var actions = {
+  SPLASH_PAGE: "splash_page",
+  START_NEW_GAME: "start_new_game ",
+  RESUME_GAME: "resume_game",
+  COMPLETE_GAME: "game_completed",
+  GUESS_CLICK: "guess_clicked",
+  SHARE_CLICK: "share_clicked",
+  INFO_CLICK: "info_clicked"
+};
 var MAX_GUESS = 3;
 var LETTER_TIMER = 5000;
 $(function () {
@@ -287,13 +296,22 @@ var setupInitGameState = function setupInitGameState() {
   } else {
     if (gameStateInfo.inProgressLetterCounter >= 0) {
       $(".popup.instructions .play-now").text("Resume Game").addClass("resume");
-    }
+      sendEvent(actions.SPLASH_PAGE, {
+        status: actions.RESUME_GAME
+      });
+    } else sendEvent(actions.SPLASH_PAGE, {
+      status: actions.START_NEW_GAME
+    });
 
-    $(".popup.instructions .play-now").on("click", function () {
+    $(".popup.instructions .play-now").on("click", function (e) {
       clearShowLetterTimeout();
       window.showLetterTimer = setTimeout(function () {
         return showLetter();
       }, LETTER_TIMER);
+      if ($(e.target).hasClass("resume")) sendEvent(actions.RESUME_GAME, {
+        counter: gameStateInfo.inProgressLetterCounter,
+        guessCount: gameStateInfo.guessCount
+      });else sendEvent(actions.START_NEW_GAME, {});
       updateProgressBar();
       $(".popup.instructions").removeClass("initial-instructions show");
       showCategory();
@@ -410,6 +428,12 @@ var completeGame = function completeGame() {
     grade = getGrade(pct);
   }
 
+  var gamestate = getObjectItem(items.GAME_STATE);
+  if (!gamestate.isComplete) sendEvent(actions.COMPLETE_GAME, {
+    grade: grade,
+    pct: pct,
+    guessCount: gameStateInfo.guessCount
+  });
   setCompleteGameStats(grade, pct);
   displayEndPopup(grade);
   gameStateInfo.gameCompleted = true;
@@ -644,6 +668,14 @@ var addEventListeners = function addEventListeners() {
 var getObjectItem = function getObjectItem(key) {
   var state = localStorage.getItem(key) || "{}";
   return $.parseJSON(state);
+};
+
+var sendEvent = function sendEvent(action, values) {
+  if (window.gtag) {
+    gtag("event", action, {
+      data: JSON.stringify(values)
+    });
+  }
 };
 
 var startGame = function startGame() {
