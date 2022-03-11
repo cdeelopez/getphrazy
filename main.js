@@ -477,6 +477,8 @@ const showLetter = (isSettingUp) => {
 const onGuessNowClick = () => {
      onGuess(true)
      clearShowLetterTimeout()
+
+     sendEvent(actions.GUESS_CLICK, { displayed: gameStateInfo.displayed, letterCount: phrazeInfo.letterCount })
 }
 
 const isGuessCorrect = () => {

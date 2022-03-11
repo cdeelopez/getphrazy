@@ -487,6 +487,10 @@ var showLetter = function showLetter(isSettingUp) {
 var onGuessNowClick = function onGuessNowClick() {
   onGuess(true);
   clearShowLetterTimeout();
+  sendEvent(actions.GUESS_CLICK, {
+    displayed: gameStateInfo.displayed,
+    letterCount: phrazeInfo.letterCount
+  });
 };
 
 var isGuessCorrect = function isGuessCorrect() {
