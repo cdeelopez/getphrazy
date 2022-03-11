@@ -66,6 +66,7 @@ const actions = {
     LOAD_ON_COMPLETE: "game_already_completed",
     START_ON_GUESS: "resume_on_guess",
     GUESS_CLICK: "guess_clicked",
+    GUESS_CANCEL_CLICK: "guess_cancel_clicked",
     SHARE_CLICK: "share_clicked",
     INFO_CLICK: "info_clicked",
     STATS_CLICK: "stats_clicked"
@@ -191,7 +192,8 @@ const getTodaysGameState = () => {
     }
 
     const inProgressStats = getObjectItem(items.GAME_STATE)
-    if (inProgressStats.counter) setTodaysState(inProgressStats)
+    if (typeof inProgressStats.counter === "number" && inProgressStats.counter >= 0) setTodaysState(inProgressStats)
+    else localStorage.removeItem(items.GAME_STATE)
 }
 
 /* if game is in progress set today's state */
@@ -200,6 +202,7 @@ const setTodaysState = (stats) => {
     gameStateInfo.gameCompleted = stats.isComplete || false
     gameStateInfo.finalGrade = stats.grade || ""
     gameStateInfo.guessCount = stats.guessCnt || 0
+    gameStateInfo.isGuessMode = stats.isGuessMode || false
 }
 
 /* show the completed board */
@@ -230,17 +233,23 @@ const setGameStateGuess = () => {
     localStorage.setItem(items.GAME_STATE, JSON.stringify(state))
 }
 
-const setToGuessMode = () => {
-    $(".main-section").addClass("guess-mode")
-    $(".guess-now").remove()
+const setToGuessMode = (isGuessMode) => {
+    if (isGuessMode) {
+        $(".main-section").addClass("guess-mode")
+    } else {
+        $(".main-section").removeClass("guess-mode")
+    }
+    const state = getObjectItem(items.GAME_STATE)
+    state.isGuessMode = isGuessMode
+    localStorage.setItem(items.GAME_STATE, JSON.stringify(state))
 }
 
 /* on clicking guess, or if guess already in progress */
 const onGuess = (fromClick) => {
-    setToGuessMode()
+    setToGuessMode(true)
     $(".progress-bar-timer").addClass("hide")
 
-    if (fromClick) gameStateInfo.guessCount++
+    if (fromClick && gameStateInfo.guessCount == 0) gameStateInfo.guessCount++
     $(".guess-chances span").slice(0, (gameStateInfo.guessCount-1)).addClass("lost")
 
     setGameStateGuess()
@@ -250,6 +259,17 @@ const onGuess = (fromClick) => {
         }
     })
     $(".guessbox input").first().focus()
+}
+
+/* on canceling guess mode, remove input boxes */
+const revertGuessMode = () => {
+    setToGuessMode(false)
+
+    $(".progress-bar-timer").removeClass("hide")
+    $(".guessbox").find("span input").remove()
+
+    if(isProgressInMax()) completeGame()
+    else window.showLetterTimer = setTimeout(() => showLetter(), LETTER_TIMER)
 }
 
 const setupInitGameState = () => {
@@ -267,15 +287,15 @@ const setupInitGameState = () => {
         setupCompleteGame()
         disableBoard()
 
-        updateProgressBar(true)
-    } else if(gameStateInfo.guessCount) {
+        updateProgressBar()
+    } else if(gameStateInfo.isGuessMode) {
         /* remove transition for the instruction popup so it hides immediately */
         $(".popup.instructions").addClass("notransition").removeClass("initial-instructions show")
 
         sendEvent(actions.START_ON_GUESS, gameStateInfo.guessCount)
         showCategory()
         onGuess()
-        updateProgressBar(true)
+        updateProgressBar()
     } else { 
         if(gameStateInfo.inProgressLetterCounter >= 0) {
             $(".popup.instructions .play-now").text("Resume Game").addClass("resume")
@@ -306,23 +326,31 @@ const setGameCounter = () => {
 
 const showLetterInBoard = (index, char) => {
     const el = $(".guessbox span").get(index)
-    $(el).text(char)
+    $(el).text(char).addClass("show-letter")
 }
 
-const updateProgressBarFromWrongGuess = () => {
-    let pct =  (gameStateInfo.displayed / phrazeInfo.letterCount) * 100
-    pct += (gameStateInfo.guessCount - 1) * phrazeInfo.letterPercent
-    if(Math.ceil(pct) >= 100) completeGame()
-    $(".progress-bar-cover").css("width", `${pct}%`)
+const updateProgressBarFromPenalty = () => {
+    $(".progress-bar-cover").addClass("penalty")
+    setTimeout(() => $(".progress-bar-cover").removeClass("penalty"), 1000)
+    updateProgressBar()
 }
 
-const updateProgressBar = (checkForGuesses) => {
-    const p = (gameStateInfo.displayed / phrazeInfo.letterCount) * 100
-    const ptimer = Math.min(((gameStateInfo.displayed+1) / phrazeInfo.letterCount) * 100, 100)
-    $(".progress-bar-cover").css("width", `${Math.min(p, 100)}%`)
-    $(".progress-bar-timer").css("width", `${Math.min(ptimer, 100)}%`)
+const isProgressInMax = () => {
+    return Math.ceil(getCurrentPct()) >= 100
+}
 
-    if(checkForGuesses) updateProgressBarFromWrongGuess()
+const getCurrentPct = () => {
+    let pct = (gameStateInfo.displayed / phrazeInfo.letterCount) * 100
+    pct += (Math.max(gameStateInfo.guessCount - 1, 0)) * phrazeInfo.letterPercent
+
+    return pct
+}
+
+const updateProgressBar = () => {
+    const pct = getCurrentPct()
+
+    $(".progress-bar-cover").css("width", `${Math.min(pct, 100)}%`)
+    $(".progress-bar-timer").css("width", `${Math.min(pct + phrazeInfo.letterPercent, 100)}%`)
 }
 
 const clearShowLetterTimeout = () => {
@@ -422,8 +450,7 @@ const completeGame = () => {
         grade = grades.F
         pct = 100
     } else {
-        pct = (gameStateInfo.displayed / phrazeInfo.letterCount) * 100
-        pct += (Math.max(gameStateInfo.guessCount - 1, 0)) * phrazeInfo.letterPercent
+        pct = getCurrentPct()
         grade = getGrade(pct)
     }
 
@@ -469,9 +496,10 @@ const showLetter = (isSettingUp) => {
         showLetter(isSettingUp)
     }
 
-    if (gameStateInfo.displayed == phrazeInfo.letterCount && !isSettingUp) {
+    if ((gameStateInfo.displayed == phrazeInfo.letterCount && !isSettingUp) || isProgressInMax()) {
         completeGame()
     }
+
 }
 
 const onGuessNowClick = () => {
@@ -508,22 +536,27 @@ const isGuessCorrect = () => {
     return false
 }
 
-const onGuessSubmit = () => {
-    const isCorrect = isGuessCorrect()
+const onGuessSubmit = (forceIncorrect) => {
+    const isCorrect = forceIncorrect === true ? false : isGuessCorrect()
+    let animTimeout = 1000
     if (isCorrect) completeGame()
     else if(isCorrect === false) {
         gameStateInfo.guessCount++
         $(".guess-chances span").slice(0, gameStateInfo.guessCount-1).addClass("lost")
-        updateProgressBarFromWrongGuess()
+        updateProgressBarFromPenalty()
         setGameStateGuess()
         
         $(".guessbox").addClass("wrong-guess")
+        $(".guess-mode-actions .guess-action").prop("disabled",true)
+
         setTimeout(() => {
             $(".guessbox").removeClass("wrong-guess")
             $(".guessbox input").val("")
             $(".guessbox input").first().focus()
+            $(".guess-mode-actions .guess-action").prop("disabled",false)
             if(gameStateInfo.guessCount > MAX_GUESS) completeGame()
-        }, 1000)
+            else revertGuessMode()
+        }, animTimeout)
         
     }
 }
@@ -599,7 +632,7 @@ const shareTotalGradeMessage = () => {
     return ``
 }
 
-const shareStats = () => {
+const shareStats = (e) => {
     let grade = $(".game-end-popup h2.grade").attr("data-grade")
     let message
     grade = Object.keys(grades).find(key => grades[key] === grade)
@@ -626,6 +659,8 @@ const shareStats = () => {
       } else {
         $(".share-msg").select()
         document.execCommand("copy")
+        $(".share").removeClass("copied")
+        setTimeout(() =>$(".share").addClass("copied"), 100)
         sendEvent(actions.SHARE_CLICK, "Copy to clipboard")
       }
       $(".share-msg").remove()
@@ -640,6 +675,12 @@ const onPopupClick = (e) => {
     if(!$(e.target).hasClass("popup-content") && !$(e.target).parents(".popup-content").length) {
         $(".popup:not(.initial-instructions)").removeClass("show")
     }
+}
+
+const onGuessCancel = () => {
+    onGuessSubmit(true)
+
+    sendEvent(actions.GUESS_CANCEL_CLICK, { displayed: gameStateInfo.displayed, letterCount: phrazeInfo.letterCount })
 }
 
 const displayOverallStatsPopup = () => {
@@ -661,6 +702,7 @@ const displayInstructions = () => {
 const addEventListeners = () => {
     $(".guess-now").on("click", onGuessNowClick)
     $(".guess-check").on("click", onGuessSubmit)
+    $(".guess-cancel").on("click", onGuessCancel)
     $(".main-section").on("keyup", "input[type='text']", (e) => onInputKeyUp(e))
     $(".bottom-bar .share").on("click", shareStats)
     $(".popup .close-popup").on("click", (e) => onClosePopup(e))

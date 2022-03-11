@@ -75,7 +75,10 @@
                 <div class="progress-bar-timer"></div>
             </div>
             <button type="button" class="guess-action guess-now">I'd Like to Guess</button>
-            <button type="button" class="guess-action guess-check">Submit</button>
+            <div class="guess-mode-actions">
+                <button type="button" class="guess-action guess-check">Submit</button>
+                <button type="button" class="guess-action guess-cancel">Cancel</button>
+            </div>
            
             <div class="popup instructions initial-instructions show">
                 <header class="popup-header">
@@ -89,8 +92,9 @@
                     <ol>
                         <li class="emphasize">Guess the <span class="phrazy">phraze</span> of the day!</li>
                         <li>Letters will appear every 5 seconds. </li>
-                        <li class="highlight">Once you start guessing, the timer stops and no new letters will be shown.</li>
                         <li>You have 3 chances to guess the right <span class="phrazy">phraze</span>.</li>
+                        <li>Timer is paused when you are in guess mode.</li>
+                        <li class="highlight">Canceling out of guess mode is equivalent to an incorrect guess.</li>
                         <li>The sooner you guess, the higher the grade!</li>
                     </ol>
                     <button type="button" class="guess-action play-now">Play Now!</button>
@@ -105,7 +109,10 @@
                     <div class="stats"></div>
                     <div class="bottom-bar">
                         <div class="next-phraze">Next phraze in <span></span></div>
-                        <span class="share"><i class="fa fa-solid fa-share-from-square"></i></span>
+                        <div class="share">
+                            <span>Copied!</span>
+                            <i class="fa fa-solid fa-share-from-square"></i>
+                        </div>
                     </div>
                     
                 </div>

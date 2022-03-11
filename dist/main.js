@@ -76,6 +76,7 @@ var actions = {
   LOAD_ON_COMPLETE: "game_already_completed",
   START_ON_GUESS: "resume_on_guess",
   GUESS_CLICK: "guess_clicked",
+  GUESS_CANCEL_CLICK: "guess_cancel_clicked",
   SHARE_CLICK: "share_clicked",
   INFO_CLICK: "info_clicked",
   STATS_CLICK: "stats_clicked"
@@ -217,7 +218,7 @@ var getTodaysGameState = function getTodaysGameState() {
   }
 
   var inProgressStats = getObjectItem(items.GAME_STATE);
-  if (inProgressStats.counter) setTodaysState(inProgressStats);
+  if (typeof inProgressStats.counter === "number" && inProgressStats.counter >= 0) setTodaysState(inProgressStats);else localStorage.removeItem(items.GAME_STATE);
 };
 /* if game is in progress set today's state */
 
@@ -227,6 +228,7 @@ var setTodaysState = function setTodaysState(stats) {
   gameStateInfo.gameCompleted = stats.isComplete || false;
   gameStateInfo.finalGrade = stats.grade || "";
   gameStateInfo.guessCount = stats.guessCnt || 0;
+  gameStateInfo.isGuessMode = stats.isGuessMode || false;
 };
 /* show the completed board */
 
@@ -256,17 +258,24 @@ var setGameStateGuess = function setGameStateGuess() {
   localStorage.setItem(items.GAME_STATE, JSON.stringify(state));
 };
 
-var setToGuessMode = function setToGuessMode() {
-  $(".main-section").addClass("guess-mode");
-  $(".guess-now").remove();
+var setToGuessMode = function setToGuessMode(isGuessMode) {
+  if (isGuessMode) {
+    $(".main-section").addClass("guess-mode");
+  } else {
+    $(".main-section").removeClass("guess-mode");
+  }
+
+  var state = getObjectItem(items.GAME_STATE);
+  state.isGuessMode = isGuessMode;
+  localStorage.setItem(items.GAME_STATE, JSON.stringify(state));
 };
 /* on clicking guess, or if guess already in progress */
 
 
 var onGuess = function onGuess(fromClick) {
-  setToGuessMode();
+  setToGuessMode(true);
   $(".progress-bar-timer").addClass("hide");
-  if (fromClick) gameStateInfo.guessCount++;
+  if (fromClick && gameStateInfo.guessCount == 0) gameStateInfo.guessCount++;
   $(".guess-chances span").slice(0, gameStateInfo.guessCount - 1).addClass("lost");
   setGameStateGuess();
   $(".guessbox").find("span").each(function () {
@@ -275,6 +284,17 @@ var onGuess = function onGuess(fromClick) {
     }
   });
   $(".guessbox input").first().focus();
+};
+/* on canceling guess mode, remove input boxes */
+
+
+var revertGuessMode = function revertGuessMode() {
+  setToGuessMode(false);
+  $(".progress-bar-timer").removeClass("hide");
+  $(".guessbox").find("span input").remove();
+  if (isProgressInMax()) completeGame();else window.showLetterTimer = setTimeout(function () {
+    return showLetter();
+  }, LETTER_TIMER);
 };
 
 var setupInitGameState = function setupInitGameState() {
@@ -293,14 +313,14 @@ var setupInitGameState = function setupInitGameState() {
     displayEndPopup(gameStateInfo.finalGrade);
     setupCompleteGame();
     disableBoard();
-    updateProgressBar(true);
-  } else if (gameStateInfo.guessCount) {
+    updateProgressBar();
+  } else if (gameStateInfo.isGuessMode) {
     /* remove transition for the instruction popup so it hides immediately */
     $(".popup.instructions").addClass("notransition").removeClass("initial-instructions show");
     sendEvent(actions.START_ON_GUESS, gameStateInfo.guessCount);
     showCategory();
     onGuess();
-    updateProgressBar(true);
+    updateProgressBar();
   } else {
     if (gameStateInfo.inProgressLetterCounter >= 0) {
       $(".popup.instructions .play-now").text("Resume Game").addClass("resume");
@@ -339,22 +359,31 @@ var setGameCounter = function setGameCounter() {
 
 var showLetterInBoard = function showLetterInBoard(index, _char) {
   var el = $(".guessbox span").get(index);
-  $(el).text(_char);
+  $(el).text(_char).addClass("show-letter");
 };
 
-var updateProgressBarFromWrongGuess = function updateProgressBarFromWrongGuess() {
+var updateProgressBarFromPenalty = function updateProgressBarFromPenalty() {
+  $(".progress-bar-cover").addClass("penalty");
+  setTimeout(function () {
+    return $(".progress-bar-cover").removeClass("penalty");
+  }, 1000);
+  updateProgressBar();
+};
+
+var isProgressInMax = function isProgressInMax() {
+  return Math.ceil(getCurrentPct()) >= 100;
+};
+
+var getCurrentPct = function getCurrentPct() {
   var pct = gameStateInfo.displayed / phrazeInfo.letterCount * 100;
-  pct += (gameStateInfo.guessCount - 1) * phrazeInfo.letterPercent;
-  if (Math.ceil(pct) >= 100) completeGame();
-  $(".progress-bar-cover").css("width", "".concat(pct, "%"));
+  pct += Math.max(gameStateInfo.guessCount - 1, 0) * phrazeInfo.letterPercent;
+  return pct;
 };
 
-var updateProgressBar = function updateProgressBar(checkForGuesses) {
-  var p = gameStateInfo.displayed / phrazeInfo.letterCount * 100;
-  var ptimer = Math.min((gameStateInfo.displayed + 1) / phrazeInfo.letterCount * 100, 100);
-  $(".progress-bar-cover").css("width", "".concat(Math.min(p, 100), "%"));
-  $(".progress-bar-timer").css("width", "".concat(Math.min(ptimer, 100), "%"));
-  if (checkForGuesses) updateProgressBarFromWrongGuess();
+var updateProgressBar = function updateProgressBar() {
+  var pct = getCurrentPct();
+  $(".progress-bar-cover").css("width", "".concat(Math.min(pct, 100), "%"));
+  $(".progress-bar-timer").css("width", "".concat(Math.min(pct + phrazeInfo.letterPercent, 100), "%"));
 };
 
 var clearShowLetterTimeout = function clearShowLetterTimeout() {
@@ -431,8 +460,7 @@ var completeGame = function completeGame() {
     grade = grades.F;
     pct = 100;
   } else {
-    pct = gameStateInfo.displayed / phrazeInfo.letterCount * 100;
-    pct += Math.max(gameStateInfo.guessCount - 1, 0) * phrazeInfo.letterPercent;
+    pct = getCurrentPct();
     grade = getGrade(pct);
   }
 
@@ -479,7 +507,7 @@ var showLetter = function showLetter(isSettingUp) {
     showLetter(isSettingUp);
   }
 
-  if (gameStateInfo.displayed == phrazeInfo.letterCount && !isSettingUp) {
+  if (gameStateInfo.displayed == phrazeInfo.letterCount && !isSettingUp || isProgressInMax()) {
     completeGame();
   }
 };
@@ -524,20 +552,23 @@ var isGuessCorrect = function isGuessCorrect() {
   return false;
 };
 
-var onGuessSubmit = function onGuessSubmit() {
-  var isCorrect = isGuessCorrect();
+var onGuessSubmit = function onGuessSubmit(forceIncorrect) {
+  var isCorrect = forceIncorrect === true ? false : isGuessCorrect();
+  var animTimeout = 1000;
   if (isCorrect) completeGame();else if (isCorrect === false) {
     gameStateInfo.guessCount++;
     $(".guess-chances span").slice(0, gameStateInfo.guessCount - 1).addClass("lost");
-    updateProgressBarFromWrongGuess();
+    updateProgressBarFromPenalty();
     setGameStateGuess();
     $(".guessbox").addClass("wrong-guess");
+    $(".guess-mode-actions .guess-action").prop("disabled", true);
     setTimeout(function () {
       $(".guessbox").removeClass("wrong-guess");
       $(".guessbox input").val("");
       $(".guessbox input").first().focus();
-      if (gameStateInfo.guessCount > MAX_GUESS) completeGame();
-    }, 1000);
+      $(".guess-mode-actions .guess-action").prop("disabled", false);
+      if (gameStateInfo.guessCount > MAX_GUESS) completeGame();else revertGuessMode();
+    }, animTimeout);
   }
 };
 
@@ -602,7 +633,7 @@ var shareTotalGradeMessage = function shareTotalGradeMessage() {
   return "";
 };
 
-var shareStats = function shareStats() {
+var shareStats = function shareStats(e) {
   var grade = $(".game-end-popup h2.grade").attr("data-grade");
   var message;
   grade = Object.keys(grades).find(function (key) {
@@ -630,6 +661,10 @@ var shareStats = function shareStats() {
   } else {
     $(".share-msg").select();
     document.execCommand("copy");
+    $(".share").removeClass("copied");
+    setTimeout(function () {
+      return $(".share").addClass("copied");
+    }, 100);
     sendEvent(actions.SHARE_CLICK, "Copy to clipboard");
   }
 
@@ -646,6 +681,14 @@ var onPopupClick = function onPopupClick(e) {
   if (!$(e.target).hasClass("popup-content") && !$(e.target).parents(".popup-content").length) {
     $(".popup:not(.initial-instructions)").removeClass("show");
   }
+};
+
+var onGuessCancel = function onGuessCancel() {
+  onGuessSubmit(true);
+  sendEvent(actions.GUESS_CANCEL_CLICK, {
+    displayed: gameStateInfo.displayed,
+    letterCount: phrazeInfo.letterCount
+  });
 };
 
 var displayOverallStatsPopup = function displayOverallStatsPopup() {
@@ -667,6 +710,7 @@ var displayInstructions = function displayInstructions() {
 var addEventListeners = function addEventListeners() {
   $(".guess-now").on("click", onGuessNowClick);
   $(".guess-check").on("click", onGuessSubmit);
+  $(".guess-cancel").on("click", onGuessCancel);
   $(".main-section").on("keyup", "input[type='text']", function (e) {
     return onInputKeyUp(e);
   });

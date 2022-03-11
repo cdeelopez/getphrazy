@@ -83,14 +83,17 @@ header.popup-header {
 .main-section.guess-mode .guess-chances {
     opacity: 1;
 }
-.main-section.guess-mode .guess-check {
+.main-section.guess-mode .guess-mode-actions {
     display: inline-block;
 }
 .main-section.guess-mode .guess-now {
     display: none;
 }
-.main-section .guess-check {
+.main-section .guess-mode-actions {
     display: none;
+}
+.guess-mode-actions {
+    display: flex;
 }
 .guess-action:after {
     font-family: 'Special Elite';
@@ -98,15 +101,15 @@ header.popup-header {
     text-transform: none;
     margin-top: 4px;
 }
-.guess-now:not(:disabled):hover:after {
-   transform: scale(1.05);
-}
 .guess-now:after {
-    content: "(This is where the clues end.)";
+    content: "(I'm feeling confident.)";
     transition: all 0.3s ease-in-out;
 }
 .guess-check:after {
-    content: "(With confidence.)";
+    content: "(Check please.)";
+}
+.guess-cancel:after {
+    content: "(More clues.)";
 }
 .guess-chances span {
     font-family: 'Rock Salt', cursive;
@@ -180,6 +183,9 @@ header.popup-header {
 .guess-action.resume:after {
     content: "(Let me back in!)";
 }
+.guess-action.guess-cancel {
+    background-color: #d21818;
+}
 .popup {
     position: absolute;
     top: 0;
@@ -251,6 +257,23 @@ header.popup-header {
     border-radius: 4px;
     color: white;
     cursor: pointer;
+    position: relative;
+}
+.popup .share span {
+    position: absolute;
+    top: -24px;
+    padding: 4px 8px;
+    border-radius: 2px;
+    background-color: rgba(0,0,0,0.6);
+    left: 50%;
+    transform: translate(-50%, 0);
+    opacity: 0;
+}
+.popup .share.copied span {
+    animation-duration: 2s;
+    animation-name: showHide;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
 }
 .popup .share:before {
     content: "Share";
@@ -470,6 +493,9 @@ header.popup-header {
     border-radius: 0 4px 4px 0;
     z-index: 5;
 }
+.progress-bar-cover.penalty {
+    background: #d21818;
+}
 .progress-bar-timer {
     transition: all 5s linear;
     background: rgba(255, 255, 255, 0.664);
@@ -528,6 +554,20 @@ header.popup-header {
     }
   }
 
+  @keyframes showHide {
+    from {
+        opacity: 0;
+    }
+  
+    50% {
+       opacity: 1;
+    }
+  
+    to {
+        opacity: 0;
+    }
+  }
+
   @media only screen and (max-width: 768px) {
     header {
         font-size: 16px;
@@ -537,5 +577,12 @@ header.popup-header {
     }
     .guessbox {
         margin: 40px 8px;
+    }
+    .guess-mode-actions {
+        flex-wrap: wrap;
+        margin: 0 16px;
+    }
+    .guess-action {
+        margin-top: 16px;
     }
   }
