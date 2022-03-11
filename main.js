@@ -14,7 +14,8 @@ const gameStateInfo = {
     displayed: 0,
     guessCount: 0,
     gameCompleted: false,
-    finalGrade: ""
+    finalGrade: "",
+    answers: []
 }
 const todaysDate = new Date()
 const pattern = [
@@ -62,9 +63,12 @@ const actions = {
     START_NEW_GAME: "start_new_game ",
     RESUME_GAME: "resume_game",
     COMPLETE_GAME: "game_completed",
+    LOAD_ON_COMPLETE: "game_already_completed",
+    START_ON_GUESS: "resume_on_guess",
     GUESS_CLICK: "guess_clicked",
     SHARE_CLICK: "share_clicked",
-    INFO_CLICK: "info_clicked"
+    INFO_CLICK: "info_clicked",
+    STATS_CLICK: "stats_clicked"
 }
 
 const MAX_GUESS = 3
@@ -256,6 +260,8 @@ const setupInitGameState = () => {
     if(gameStateInfo.gameCompleted) {
         /* remove transition for the instruction popup so it hides immediately */
         $(".popup.instructions").addClass("notransition").removeClass("initial-instructions show")
+
+        sendEvent(actions.LOAD_ON_COMPLETE, {grade: gameStateInfo.finalGrade})
             
         displayEndPopup(gameStateInfo.finalGrade)
         setupCompleteGame()
@@ -265,6 +271,8 @@ const setupInitGameState = () => {
     } else if(gameStateInfo.guessCount) {
         /* remove transition for the instruction popup so it hides immediately */
         $(".popup.instructions").addClass("notransition").removeClass("initial-instructions show")
+
+        sendEvent(actions.START_ON_GUESS, gameStateInfo.guessCount)
         showCategory()
         onGuess()
         updateProgressBar(true)
@@ -420,7 +428,7 @@ const completeGame = () => {
     }
 
     const gamestate = getObjectItem(items.GAME_STATE)
-    if(!gamestate.isComplete) sendEvent(actions.COMPLETE_GAME, { grade: grade, pct: pct, guessCount: gameStateInfo.guessCount })
+    if(!gamestate.isComplete) sendEvent(actions.COMPLETE_GAME, { grade: grade, pct: pct, guessCount: gameStateInfo.guessCount, answers: gameStateInfo.answers.join(",") })
 
     setCompleteGameStats(grade, pct)
 
@@ -494,6 +502,7 @@ const isGuessCorrect = () => {
     if(guess.toUpperCase() == phrazeInfo.phraseLetters.toUpperCase()) {
         return true
     }
+    gameStateInfo.answers.push(guess)
     return false
 }
 
@@ -610,9 +619,12 @@ const shareStats = () => {
           console.log('Thanks for sharing!');
         })
         .catch(console.error);
+
+        sendEvent(actions.SHARE_CLICK, "Navigator share")
       } else {
         $(".share-msg").select()
         document.execCommand("copy")
+        sendEvent(actions.SHARE_CLICK, "Copy to clipboard")
       }
       $(".share-msg").remove()
 }
@@ -635,10 +647,13 @@ const displayOverallStatsPopup = () => {
     } else $(".bottom-bar .share").show()
     displayStats()
     $(".game-end-popup").addClass("show")
+
+    sendEvent(actions.STATS_CLICK)
 }
 
 const displayInstructions = () => {
     $(".popup.instructions").removeClass("notransition").addClass("non-actionable show")
+    sendEvent(actions.INFO_CLICK)
 }
 
 const addEventListeners = () => {

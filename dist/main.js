@@ -36,7 +36,8 @@ var gameStateInfo = {
   displayed: 0,
   guessCount: 0,
   gameCompleted: false,
-  finalGrade: ""
+  finalGrade: "",
+  answers: []
 };
 var todaysDate = new Date();
 var pattern = [['D', 'L', 'Z', 'F', 'E', 'K', 'B', 'O', 'P', 'V', 'T', 'G', 'S', 'A', 'C', 'U', 'N', 'I', 'H', 'R', 'Y', 'J', 'M', 'X', 'Q', 'W'], ['H', 'M', 'E', 'D', 'J', 'O', 'N', 'R', 'X', 'K', 'U', 'Y', 'V', 'S', 'B', 'W', 'F', 'T', 'A', 'P', 'Q', 'L', 'I', 'Z', 'C', 'G'], ['Z', 'M', 'K', 'N', 'X', 'G', 'U', 'S', 'E', 'R', 'B', 'V', 'A', 'P', 'T', 'I', 'C', 'F', 'D', 'W', 'L', 'O', 'J', 'Y', 'H', 'Q'], ['N', 'X', 'B', 'R', 'Y', 'T', 'L', 'I', 'S', 'P', 'E', 'C', 'V', 'J', 'H', 'Z', 'A', 'G', 'W', 'F', 'U', 'M', 'O', 'K', 'D', 'Q'], ['I', 'N', 'F', 'Q', 'C', 'U', 'R', 'O', 'D', 'H', 'A', 'Z', 'L', 'K', 'V', 'J', 'S', 'M', 'G', 'P', 'Y', 'X', 'T', 'B', 'E', 'W'], ['F', 'Q', 'V', 'H', 'K', 'Y', 'C', 'J', 'X', 'Z', 'M', 'R', 'W', 'E', 'N', 'S', 'P', 'I', 'B', 'U', 'O', 'A', 'G', 'D', 'T', 'L'], ['W', 'G', 'Y', 'U', 'M', 'N', 'H', 'I', 'K', 'Z', 'O', 'R', 'B', 'Q', 'C', 'P', 'J', 'F', 'S', 'T', 'L', 'A', 'X', 'E', 'D', 'V']];
@@ -72,9 +73,12 @@ var actions = {
   START_NEW_GAME: "start_new_game ",
   RESUME_GAME: "resume_game",
   COMPLETE_GAME: "game_completed",
+  LOAD_ON_COMPLETE: "game_already_completed",
+  START_ON_GUESS: "resume_on_guess",
   GUESS_CLICK: "guess_clicked",
   SHARE_CLICK: "share_clicked",
-  INFO_CLICK: "info_clicked"
+  INFO_CLICK: "info_clicked",
+  STATS_CLICK: "stats_clicked"
 };
 var MAX_GUESS = 3;
 var LETTER_TIMER = 5000;
@@ -283,6 +287,9 @@ var setupInitGameState = function setupInitGameState() {
   if (gameStateInfo.gameCompleted) {
     /* remove transition for the instruction popup so it hides immediately */
     $(".popup.instructions").addClass("notransition").removeClass("initial-instructions show");
+    sendEvent(actions.LOAD_ON_COMPLETE, {
+      grade: gameStateInfo.finalGrade
+    });
     displayEndPopup(gameStateInfo.finalGrade);
     setupCompleteGame();
     disableBoard();
@@ -290,6 +297,7 @@ var setupInitGameState = function setupInitGameState() {
   } else if (gameStateInfo.guessCount) {
     /* remove transition for the instruction popup so it hides immediately */
     $(".popup.instructions").addClass("notransition").removeClass("initial-instructions show");
+    sendEvent(actions.START_ON_GUESS, gameStateInfo.guessCount);
     showCategory();
     onGuess();
     updateProgressBar(true);
@@ -432,7 +440,8 @@ var completeGame = function completeGame() {
   if (!gamestate.isComplete) sendEvent(actions.COMPLETE_GAME, {
     grade: grade,
     pct: pct,
-    guessCount: gameStateInfo.guessCount
+    guessCount: gameStateInfo.guessCount,
+    answers: gameStateInfo.answers.join(",")
   });
   setCompleteGameStats(grade, pct);
   displayEndPopup(grade);
@@ -507,6 +516,7 @@ var isGuessCorrect = function isGuessCorrect() {
     return true;
   }
 
+  gameStateInfo.answers.push(guess);
   return false;
 };
 
@@ -612,9 +622,11 @@ var shareStats = function shareStats() {
     }).then(function () {
       console.log('Thanks for sharing!');
     })["catch"](console.error);
+    sendEvent(actions.SHARE_CLICK, "Navigator share");
   } else {
     $(".share-msg").select();
     document.execCommand("copy");
+    sendEvent(actions.SHARE_CLICK, "Copy to clipboard");
   }
 
   $(".share-msg").remove();
@@ -640,10 +652,12 @@ var displayOverallStatsPopup = function displayOverallStatsPopup() {
 
   displayStats();
   $(".game-end-popup").addClass("show");
+  sendEvent(actions.STATS_CLICK);
 };
 
 var displayInstructions = function displayInstructions() {
   $(".popup.instructions").removeClass("notransition").addClass("non-actionable show");
+  sendEvent(actions.INFO_CLICK);
 };
 
 var addEventListeners = function addEventListeners() {
