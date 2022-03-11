@@ -93,7 +93,6 @@ var setupPhrazeInfo = function setupPhrazeInfo(phrase) {
   phrazeInfo.phraseLetters = phrase.phraze.split(" ").join("");
   phrazeInfo.letterCount = phrazeInfo.phraseLetters.length;
   phrazeInfo.letterPercent = 1 / phrazeInfo.letterCount * 100;
-  console.log(phrazeInfo);
 };
 /* gets today's day in the year */
 
@@ -407,7 +406,7 @@ var completeGame = function completeGame() {
     pct = 100;
   } else {
     pct = gameStateInfo.displayed / phrazeInfo.letterCount * 100;
-    pct += (gameStateInfo.guessCount - 1) * phrazeInfo.letterPercent;
+    pct += Math.max(gameStateInfo.guessCount - 1, 0) * phrazeInfo.letterPercent;
     grade = getGrade(pct);
   }
 
