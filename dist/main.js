@@ -480,7 +480,7 @@ var completeGame = function completeGame() {
 
 var showLetter = function showLetter(isSettingUp) {
   var letter = phrazeInfo.pattern[gameStateInfo.showLetterCounter % phrazeInfo.pattern.length];
-  var isOddCounter = gameStateInfo.showLetterCounter % 2 !== 0;
+  var isOddCounter = gameStateInfo.displayed % 2 !== 0;
   /* somewhat randomizing which instance of the letter is displayed */
 
   var chr = -1;
@@ -543,12 +543,12 @@ var isGuessCorrect = function isGuessCorrect() {
     } else guess += $(this).text() || "";
   });
   if (invalid) return;
+  gameStateInfo.answers.push(guess);
 
   if (guess.toUpperCase() == phrazeInfo.phraseLetters.toUpperCase()) {
     return true;
   }
 
-  gameStateInfo.answers.push(guess);
   return false;
 };
 

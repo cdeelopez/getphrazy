@@ -466,7 +466,7 @@ const completeGame = () => {
 /* finds and shows the next letter in board */
 const showLetter = (isSettingUp) => {
     const letter = phrazeInfo.pattern[gameStateInfo.showLetterCounter % phrazeInfo.pattern.length]
-    const isOddCounter = gameStateInfo.showLetterCounter % 2 !== 0
+    const isOddCounter = gameStateInfo.displayed % 2 !== 0
     
     /* somewhat randomizing which instance of the letter is displayed */
     let chr = -1
@@ -529,10 +529,11 @@ const isGuessCorrect = () => {
         } else guess += $(this).text() || ""
     })
     if (invalid) return
+    gameStateInfo.answers.push(guess)
+    
     if(guess.toUpperCase() == phrazeInfo.phraseLetters.toUpperCase()) {
         return true
     }
-    gameStateInfo.answers.push(guess)
     return false
 }
 
