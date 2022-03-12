@@ -79,7 +79,8 @@ var actions = {
   GUESS_CANCEL_CLICK: "guess_cancel_clicked",
   SHARE_CLICK: "share_clicked",
   INFO_CLICK: "info_clicked",
-  STATS_CLICK: "stats_clicked"
+  STATS_CLICK: "stats_clicked",
+  MENU_CLICK: "menu_clicked"
 };
 var MAX_GUESS = 3;
 var LETTER_TIMER = 5000;
@@ -707,6 +708,17 @@ var displayInstructions = function displayInstructions() {
   sendEvent(actions.INFO_CLICK);
 };
 
+var toggleMenu = function toggleMenu() {
+  $(".main-nav ul").toggleClass("show");
+  sendEvent(actions.STATS_CLICK);
+};
+
+var checkForOpenMenu = function checkForOpenMenu(e) {
+  if (!$(e.target).hasClass("nav-list") && !$(e.target).parents(".nav-list").length && !$(e.target).hasClass("menu-icon")) {
+    $(".main-nav ul").removeClass("show");
+  }
+};
+
 var addEventListeners = function addEventListeners() {
   $(".guess-now").on("click", onGuessNowClick);
   $(".guess-check").on("click", onGuessSubmit);
@@ -723,6 +735,8 @@ var addEventListeners = function addEventListeners() {
   });
   $("header .game-actions .game-stats").on("click", displayOverallStatsPopup);
   $("header .game-actions .game-info").on("click", displayInstructions);
+  $("header .game-actions .menu-icon").on("click", toggleMenu);
+  $("body").on("click", checkForOpenMenu);
 };
 /* get local storage object */
 

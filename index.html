@@ -30,7 +30,7 @@
         <link rel="canonical" href="https://getphrazy.com/" />
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500&family=Rock+Salt&family=Special+Elite&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500&family=Rock+Salt&family=Special+Elite&family=Syncopate&family=Pacifico&display=swap" rel="stylesheet">
         <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
         <script src="https://kit.fontawesome.com/eda7aa5adb.js" crossorigin="anonymous"></script>
         <script src="dist/main-min.js"></script>
@@ -43,13 +43,31 @@
         gtag('js', new Date());
 
         gtag('config', 'G-SM6WP6DC54');
+
+        if(window.location.hostname == "localhost" || window.location.search.indexOf("debug=true") > -1 )
+            window['ga-disable-G-SM6WP6DC54'] = true;
         </script>
     </head>
     <body>
         <header>
             <h1 class="title"><span>get</span><strong>Phrazy</strong></h1>
+            <nav class="main-nav game-actions">
+                <i class="fa fa-solid fa-bars menu-icon" title="Menu"></i>
+                <ul class="nav-list">
+                    <li class="parent">
+                        <span>Daily.</span><span>Brain.</span><span>Play.</span>
+                    </li>
+                    <li class="gphrazy">
+                        <a href="https://getphrazy.com/" target="_blank"><span>get</span><strong>Phrazy</strong></a>
+                    </li>
+                    <li class="word">
+                        <a href="https://word.dailybrainplay.com/" target="_blank"><span>Word!</span></a>
+                    </li>
+                    <a href="mailto:info@dailybrainplay.com" class="email"><i class="fa fa-solid fa-envelope" aria-hidden="true"></i>info@dailybrainplay.com</a>
+                </ul>
+            </nav>
             <div class="game-actions">
-                <i class="fa fa-solid fa-bars-progress game-stats" title="Game Stats"></i>
+                <i class="fa fa-solid fa-chart-bar game-stats" title="Game Stats"></i>
                 <i class="fa fa-solid fa-circle-info game-info" title="Game Instructions"></i>
             </div>
         </header>
@@ -84,7 +102,8 @@
                 <header class="popup-header">
                     <h2 class="title"><span>get</span><strong>Phrazy</strong></h2>
                     <div class="game-actions">
-                        <i class="fa fa-solid fa-bars-progress game-stats" title="Game Stats"></i>
+                        <i class="fa fa-solid fa-chart-bar game-stats" title="Game Stats"></i>
+                        <i class="fa fa-solid fa-circle-info game-info" title="Game Instructions"></i>
                     </div>
                 </header>
                 <div class="popup-content content">

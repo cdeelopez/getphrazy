@@ -69,7 +69,8 @@ const actions = {
     GUESS_CANCEL_CLICK: "guess_cancel_clicked",
     SHARE_CLICK: "share_clicked",
     INFO_CLICK: "info_clicked",
-    STATS_CLICK: "stats_clicked"
+    STATS_CLICK: "stats_clicked",
+    MENU_CLICK: "menu_clicked"
 }
 
 const MAX_GUESS = 3
@@ -530,7 +531,7 @@ const isGuessCorrect = () => {
     })
     if (invalid) return
     gameStateInfo.answers.push(guess)
-    
+
     if(guess.toUpperCase() == phrazeInfo.phraseLetters.toUpperCase()) {
         return true
     }
@@ -700,6 +701,17 @@ const displayInstructions = () => {
     sendEvent(actions.INFO_CLICK)
 }
 
+const toggleMenu = () => {
+    $(".main-nav ul").toggleClass("show")
+    sendEvent(actions.STATS_CLICK)
+}
+
+const checkForOpenMenu = (e) => {
+    if(!$(e.target).hasClass("nav-list") && !$(e.target).parents(".nav-list").length && !$(e.target).hasClass("menu-icon")) {
+        $(".main-nav ul").removeClass("show")
+    }
+}
+
 const addEventListeners = () => {
     $(".guess-now").on("click", onGuessNowClick)
     $(".guess-check").on("click", onGuessSubmit)
@@ -711,7 +723,8 @@ const addEventListeners = () => {
 
     $("header .game-actions .game-stats").on("click", displayOverallStatsPopup)
     $("header .game-actions .game-info").on("click", displayInstructions)
-
+    $("header .game-actions .menu-icon").on("click", toggleMenu)
+    $("body").on("click", checkForOpenMenu)
 }
 
 /* get local storage object */

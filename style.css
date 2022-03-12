@@ -11,20 +11,27 @@ header {
     color: #355071;
     max-width: 800px;
     margin: 0 auto;
+}
+header .title {
     font-size: 22px;
 }
 header.popup-header {
     color: #fff;
 }
+header.popup-header .game-info {
+    visibility: hidden;
+}
 .title {
     margin-top: 24px;
 }
-.title span {
+.title span,
+.gphrazy span {
     font-family: 'Special Elite', cursive;
     font-size: 1em;
-    margin-right: 8px;
+    margin-right: 4px;
 }
-.title strong {
+.title strong,
+.gphrazy strong {
     font-family: 'Rock Salt', cursive;
     font-size: 1.6em;
 }
@@ -42,6 +49,9 @@ header.popup-header {
 .game-actions i {
     padding: 8px;
     cursor: pointer;
+}
+.game-actions .fa-chart-bar {
+    transform: rotate(-90deg);
 }
 .main-section {
     margin: 16px auto;
@@ -536,7 +546,90 @@ header.popup-header {
     animation-fill-mode: forwards;
 }
 
+.main-nav {
+    left: 24px;
+    right: auto;
+    border-radius: 30px;
+    background: #355071;
+    z-index: 100;
+}
+.main-nav .menu-icon {
+    color: white;
+}
+.main-nav ul {
+    position: absolute;
+    width: 200px;
+    padding: 16px;
+    box-sizing: border-box;
+    background: white;
+    box-shadow: rgb(0 0 0 / 16%) 0px 3px 6px, rgb(0 0 0 / 23%) 0px 3px 6px;
+    min-height: 280px;
+    border-radius: 4px;
+    top: 40px;
+    list-style: none;
+    transform: scale(0.6);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease-in-out, visibility 0s ease-in-out 0.2s;
+    transform-origin: top left;
 
+}
+.main-nav ul.show {
+    transform: scale(1);
+    opacity: 1;
+    visibility: visible;
+    transition: all 0.2s ease-in-out  0.2s, visibility 0s ease-in-out;
+}
+.main-nav ul li a {
+    text-decoration: none;
+    display: block;
+}
+.main-nav li.parent {
+    font-family: 'Syncopate', sans-serif;
+    font-size: 18px;
+    text-transform: uppercase;
+    color: black;
+    box-shadow: 0px 18px 8px -18px rgb(0 0 0 / 15%);
+    padding-bottom: 8px;
+    text-align: left;
+}
+.main-nav li.parent span {
+    display: block;
+}
+.main-nav li:not(.parent) {
+    padding: 16px 0;
+    cursor: pointer;
+    margin-bottom: 8px;
+}
+.main-nav .gphrazy {
+    font-size: 12px;
+    background: #355071;
+}
+.main-nav .gphrazy a {
+    color: #ccc;
+}
+.main-nav .word {
+    font-family: 'Pacifico', cursive;
+    font-size: 21px;
+    background-color: #E5DCC8;
+}
+.main-nav .word a {
+    color: #003314;
+}
+.main-nav .email {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translate(-50%, 0);
+    font-size: .8em;
+    color: black;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+.main-nav .email i {
+    padding: 8px 4px;
+}
 @keyframes zoomin {
     from {
         transform: scale(1);
@@ -569,11 +662,15 @@ header.popup-header {
   }
 
   @media only screen and (max-width: 768px) {
-    header {
+    header .title {
         font-size: 16px;
     }
     header .game-actions {
         right: 8px;
+    }
+    header .game-actions.main-nav {
+        left: 16px;
+        right: auto;
     }
     .guessbox {
         margin: 40px 8px;
