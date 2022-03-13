@@ -80,7 +80,8 @@ var actions = {
   SHARE_CLICK: "share_clicked",
   INFO_CLICK: "info_clicked",
   STATS_CLICK: "stats_clicked",
-  MENU_CLICK: "menu_clicked"
+  MENU_CLICK: "menu_clicked",
+  NEXT_DAY_RELOAD: "reload_next_day"
 };
 var MAX_GUESS = 3;
 var LETTER_TIMER = 5000;
@@ -186,7 +187,11 @@ var displayCountdown = function displayCountdown() {
   }
 
   if (hours === "00" && minutes === "00" && seconds === "01") {
-    location.reload();
+    clearInterval(window.nextPhrazeInterval);
+    sendEvent(actions.NEXT_DAY_RELOAD);
+    setTimeout(function () {
+      location.reload();
+    }, 1000);
   }
 };
 /* get today's game state if any */
@@ -710,7 +715,7 @@ var displayInstructions = function displayInstructions() {
 
 var toggleMenu = function toggleMenu() {
   $(".main-nav ul").toggleClass("show");
-  sendEvent(actions.STATS_CLICK);
+  sendEvent(actions.MENU_CLICK);
 };
 
 var checkForOpenMenu = function checkForOpenMenu(e) {
@@ -747,7 +752,7 @@ var getObjectItem = function getObjectItem(key) {
 };
 
 var sendEvent = function sendEvent(action, values) {
-  if (window.gtag) {
+  if (window.gtag && window.location.search.indexOf("debug=true") === -1) {
     gtag("event", action, {
       data: JSON.stringify(values)
     });

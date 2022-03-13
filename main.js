@@ -70,7 +70,8 @@ const actions = {
     SHARE_CLICK: "share_clicked",
     INFO_CLICK: "info_clicked",
     STATS_CLICK: "stats_clicked",
-    MENU_CLICK: "menu_clicked"
+    MENU_CLICK: "menu_clicked",
+    NEXT_DAY_RELOAD: "reload_next_day"
 }
 
 const MAX_GUESS = 3
@@ -165,7 +166,9 @@ const displayCountdown = () => {
     }
 
     if (hours === "00" && minutes === "00" && seconds === "01") {
-        location.reload()
+        clearInterval(window.nextPhrazeInterval)
+        sendEvent(actions.NEXT_DAY_RELOAD)
+        setTimeout(() => { location.reload() }, 1000)
     }
 }
 
@@ -703,7 +706,7 @@ const displayInstructions = () => {
 
 const toggleMenu = () => {
     $(".main-nav ul").toggleClass("show")
-    sendEvent(actions.STATS_CLICK)
+    sendEvent(actions.MENU_CLICK)
 }
 
 const checkForOpenMenu = (e) => {
@@ -725,6 +728,7 @@ const addEventListeners = () => {
     $("header .game-actions .game-info").on("click", displayInstructions)
     $("header .game-actions .menu-icon").on("click", toggleMenu)
     $("body").on("click", checkForOpenMenu)
+
 }
 
 /* get local storage object */
@@ -734,7 +738,7 @@ const getObjectItem = (key) => {
 }
 
 const sendEvent = (action, values) => {
-    if(window.gtag) {
+    if(window.gtag && window.location.search.indexOf("debug=true") === -1 ) {
         gtag("event", action, { data: JSON.stringify(values) })
     }
 }
