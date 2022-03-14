@@ -574,7 +574,7 @@ const onInputKeyUp = (e) => {
             .val("")
             .focus()
     } else if((e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 65 && e.keyCode <= 90) || e.keyCode === 0 || e.keyCode === 229) { // a-z 0-9
-        if($(e.target).val() !== "") $(e.target).val(e.key)
+       // if($(e.target).val() !== "") $(e.target).val(e.key)
         inputs.eq(inputs.index(e.target) + 1).focus()
     } else if(e.keyCode == 13) { // enter
         $(".guess-check").click()
