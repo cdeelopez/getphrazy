@@ -73,6 +73,7 @@ var actions = {
   START_NEW_GAME: "start_new_game ",
   RESUME_GAME: "resume_game",
   COMPLETE_GAME: "game_completed",
+  GAME_END_STATS: "game_end_stats",
   LOAD_ON_COMPLETE: "game_already_completed",
   START_ON_GUESS: "resume_on_guess",
   GUESS_CLICK: "guess_clicked",
@@ -110,14 +111,19 @@ var setupPhrazeInfo = function setupPhrazeInfo(phrase) {
   phrazeInfo.letterCount = phrazeInfo.phraseLetters.length;
   phrazeInfo.letterPercent = 1 / phrazeInfo.letterCount * 100;
 };
+
+var treatAsUTC = function treatAsUTC(date) {
+  var result = new Date(date);
+  result.setMinutes(result.getMinutes() - result.getTimezoneOffset());
+  return result;
+};
 /* gets today's day in the year */
 
 
 var todaysDayInYear = function todaysDayInYear() {
+  var millisecondsPerDay = 24 * 60 * 60 * 1000;
   var start = new Date(todaysDate.getFullYear(), 0, 0);
-  var diff = todaysDate - start;
-  var oneDay = 1000 * 60 * 60 * 24;
-  return Math.floor(diff / oneDay);
+  return Math.floor((treatAsUTC(todaysDate) - treatAsUTC(start)) / millisecondsPerDay);
 };
 /* set up phrase board */
 
@@ -186,12 +192,12 @@ var displayCountdown = function displayCountdown() {
     clearInterval(window.nextPhrazeInterval);
   }
 
-  if (hours === "00" && minutes === "00" && seconds === "01") {
+  if (hours === "00" && minutes === "00" && parseInt(seconds) < 2) {
     clearInterval(window.nextPhrazeInterval);
     sendEvent(actions.NEXT_DAY_RELOAD);
     setTimeout(function () {
       location.reload();
-    }, 1000);
+    }, 2500);
   }
 };
 /* get today's game state if any */
@@ -445,6 +451,10 @@ var displayStats = function displayStats() {
     $(el).css("height", "".concat(ht, "px"));
     if (gameGrades[g]) $(el).text(gameGrades[g]);
   });
+  sendEvent(actions.GAME_END_STATS, {
+    gamesPlayed: gameTotal,
+    overallGrade: overallGrade
+  });
 };
 
 var displayEndPopup = function displayEndPopup(grade) {
@@ -549,12 +559,12 @@ var isGuessCorrect = function isGuessCorrect() {
     } else guess += $(this).text() || "";
   });
   if (invalid) return;
-  gameStateInfo.answers.push(guess);
 
   if (guess.toUpperCase() == phrazeInfo.phraseLetters.toUpperCase()) {
     return true;
   }
 
+  gameStateInfo.answers.push(guess);
   return false;
 };
 

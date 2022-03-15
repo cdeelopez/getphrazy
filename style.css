@@ -197,7 +197,7 @@ header.popup-header .game-info {
     background-color: #d21818;
 }
 .popup {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     right: 0;

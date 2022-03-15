@@ -63,6 +63,7 @@ const actions = {
     START_NEW_GAME: "start_new_game ",
     RESUME_GAME: "resume_game",
     COMPLETE_GAME: "game_completed",
+    GAME_END_STATS: "game_end_stats",
     LOAD_ON_COMPLETE: "game_already_completed",
     START_ON_GUESS: "resume_on_guess",
     GUESS_CLICK: "guess_clicked",
@@ -101,12 +102,17 @@ const setupPhrazeInfo = (phrase) => {
     phrazeInfo.letterPercent = (1 / phrazeInfo.letterCount) * 100
 }
 
+const treatAsUTC = (date) => {
+    const result = new Date(date)
+    result.setMinutes(result.getMinutes() - result.getTimezoneOffset())
+    return result
+}
+
 /* gets today's day in the year */
 const todaysDayInYear = () => {
+    const millisecondsPerDay = 24 * 60 * 60 * 1000
     const start = new Date(todaysDate.getFullYear(), 0, 0)
-    const diff = todaysDate - start
-    const oneDay = 1000 * 60 * 60 * 24
-    return Math.floor(diff / oneDay)
+    return Math.floor((treatAsUTC(todaysDate) - treatAsUTC(start)) / millisecondsPerDay)
 }
 
 /* set up phrase board */
@@ -165,10 +171,10 @@ const displayCountdown = () => {
         clearInterval(window.nextPhrazeInterval)
     }
 
-    if (hours === "00" && minutes === "00" && seconds === "01") {
+    if (hours === "00" && minutes === "00" && parseInt(seconds) < 2) {
         clearInterval(window.nextPhrazeInterval)
         sendEvent(actions.NEXT_DAY_RELOAD)
-        setTimeout(() => { location.reload() }, 1000)
+        setTimeout(() => { location.reload() }, 2500)
     }
 }
 
@@ -432,6 +438,8 @@ const displayStats = () => {
         $(el).css("height", `${ht}px`)
         if(gameGrades[g]) $(el).text(gameGrades[g])
     })
+
+    sendEvent(actions.GAME_END_STATS, { gamesPlayed: gameTotal, overallGrade: overallGrade })
 }
 
 const displayEndPopup = (grade) => {
@@ -533,11 +541,12 @@ const isGuessCorrect = () => {
         } else guess += $(this).text() || ""
     })
     if (invalid) return
-    gameStateInfo.answers.push(guess)
 
     if(guess.toUpperCase() == phrazeInfo.phraseLetters.toUpperCase()) {
         return true
     }
+
+    gameStateInfo.answers.push(guess)
     return false
 }
 
@@ -574,7 +583,7 @@ const onInputKeyUp = (e) => {
             .val("")
             .focus()
     } else if((e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 65 && e.keyCode <= 90) || e.keyCode === 0 || e.keyCode === 229) { // a-z 0-9
-       // if($(e.target).val() !== "") $(e.target).val(e.key)
+        // if($(e.target).val() !== "") $(e.target).val(e.key)
         inputs.eq(inputs.index(e.target) + 1).focus()
     } else if(e.keyCode == 13) { // enter
         $(".guess-check").click()
