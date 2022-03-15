@@ -77,6 +77,7 @@ var actions = {
   LOAD_ON_COMPLETE: "game_already_completed",
   START_ON_GUESS: "resume_on_guess",
   GUESS_CLICK: "guess_clicked",
+  GUESS_CHECK_CLICK: "guess_check",
   GUESS_CANCEL_CLICK: "guess_cancel_clicked",
   SHARE_CLICK: "share_clicked",
   INFO_CLICK: "info_clicked",
@@ -559,12 +560,15 @@ var isGuessCorrect = function isGuessCorrect() {
     } else guess += $(this).text() || "";
   });
   if (invalid) return;
+  gameStateInfo.answers.push(guess);
+  sendEvent(actions.GUESS_CHECK_CLICK, {
+    guess: guess
+  });
 
   if (guess.toUpperCase() == phrazeInfo.phraseLetters.toUpperCase()) {
     return true;
   }
 
-  gameStateInfo.answers.push(guess);
   return false;
 };
 
