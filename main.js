@@ -111,9 +111,10 @@ const treatAsUTC = (date) => {
 
 /* gets today's day in the year */
 const todaysDayInYear = () => {
+    const today = new Date()
     const millisecondsPerDay = 24 * 60 * 60 * 1000
-    const start = new Date(todaysDate.getFullYear(), 0, 0)
-    return Math.floor((treatAsUTC(todaysDate) - treatAsUTC(start)) / millisecondsPerDay)
+    const start = new Date(today.getFullYear(), 0, 0)
+    return Math.floor((treatAsUTC(today) - treatAsUTC(start)) / millisecondsPerDay)
 }
 
 /* set up phrase board */
@@ -172,10 +173,11 @@ const displayCountdown = () => {
         clearInterval(window.nextPhrazeInterval)
     }
 
-    if (hours === "00" && minutes === "00" && parseInt(seconds) < 2) {
+    const lastPlayedPhraze = localStorage.getItem(items.LAST_PLAYED_PHRAZE)
+    if (lastPlayedPhraze && lastPlayedPhraze != todaysDayInYear()) {
         clearInterval(window.nextPhrazeInterval)
         sendEvent(actions.NEXT_DAY_RELOAD)
-        setTimeout(() => { location.reload() }, 2500)
+        setTimeout(() => { location.reload() }, 500)
     }
 }
 
@@ -758,10 +760,10 @@ const startGame = () => {
     setupBoard()
     /* set up percentage markers in progress bar */
     initProgressBar()
-    /* initialize countdown until next phraze */
-    initNextPhrazeCountdown()
     /* get and set today's game state data if any */
     getTodaysGameState()
+    /* initialize countdown until next phraze */
+    initNextPhrazeCountdown()
     /* setup game state considering in progress data */
     setupInitGameState()
     addEventListeners()
