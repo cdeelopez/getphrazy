@@ -487,7 +487,8 @@ var completeGame = function completeGame() {
   var gamestate = getObjectItem(items.GAME_STATE);
   if (!gamestate.isComplete) sendEvent(actions.COMPLETE_GAME, {
     grade: grade,
-    pct: pct,
+    pct: pct.toFixed(2),
+    phraze: todaysDayInYear(),
     guessCount: gameStateInfo.guessCount,
     answers: gameStateInfo.answers.join(",")
   });
