@@ -18,14 +18,6 @@ const gameStateInfo = {
     answers: []
 }
 const todaysDate = new Date()
-const pattern = [
-    ['D','L','Z','F','E','K','B','O','P','V','T','G','S','A','C','U','N','I','H','R','Y','J','M','X','Q','W'],
-    ['H','M','E','D','J','O','N','R','X','K','U','Y','V','S','B','W','F','T','A','P','Q','L','I','Z','C','G'],
-    ['Z','M','K','N','X','G','U','S','E','R','B','V','A','P','T','I','C','F','D','W','L','O','J','Y','H','Q'],
-    ['N','X','B','R','Y','T','L','I','S','P','E','C','V','J','H','Z','A','G','W','F','U','M','O','K','D','Q'],
-    ['I','N','F','Q','C','U','R','O','D','H','A','Z','L','K','V','J','S','M','G','P','Y','X','T','B','E','W'],
-    ['F','Q','V','H','K','Y','C','J','X','Z','M','R','W','E','N','S','P','I','B','U','O','A','G','D','T','L'],
-    ['W','G','Y','U','M','N','H','I','K','Z','O','R','B','Q','C','P','J','F','S','T','L','A','X','E','D','V']]
 
 const items = {
     LAST_PLAYED_DEP: "last-played-date",
@@ -88,7 +80,7 @@ $(function() {
 
 /* get phrases from json file */
 const getPhrases = (cb) => {
-    $.getJSON("./phrazes-cat.json", function(data){
+    $.getJSON("./data/pdata.json", function(data){
         cb(data.phrazes)
     }).fail(function(){
         console.log("An error has occurred.")
@@ -96,7 +88,8 @@ const getPhrases = (cb) => {
 }
 
 const setupPhrazeInfo = (phrase) => {
-    phrazeInfo.pattern = pattern[todaysDate.getDay()]
+    //phrazeInfo.pattern = pattern[todaysDate.getDay()]
+    phrazeInfo.pattern = phrase.pattern
     phrazeInfo.today = {...phrase, phraze: phrase.phraze.toUpperCase() }
     phrazeInfo.phraseLetters = phrase.phraze.split(" ").join("")
     phrazeInfo.letterCount = phrazeInfo.phraseLetters.length
@@ -455,7 +448,7 @@ const displayEndPopup = (grade) => {
     $(".game-end-popup").addClass("show")
     $(".bottom-bar .share").show()
 }
-
+const test = () => {}
 const completeGame = () => {
     let grade, pct
     if(gameStateInfo.gameCompleted) return
@@ -480,38 +473,31 @@ const completeGame = () => {
 
 /* finds and shows the next letter in board */
 const showLetter = (isSettingUp) => {
-    const letter = phrazeInfo.pattern[gameStateInfo.showLetterCounter % phrazeInfo.pattern.length]
-    const isOddCounter = gameStateInfo.displayed % 2 !== 0
-    
-    /* somewhat randomizing which instance of the letter is displayed */
-    let chr = -1
-    if(isOddCounter) chr = phrazeInfo.phraseLetters.indexOf(letter) 
-    else chr = phrazeInfo.phraseLetters.lastIndexOf(letter)
-
+   
     if(!isSettingUp) setGameCounter()
 
-    if(chr != -1) {
-        const tempWrd = phrazeInfo.phraseLetters.split("")
-        tempWrd[chr] = tempWrd[chr].toLowerCase()
-        phrazeInfo.phraseLetters = tempWrd.join("")
-        showLetterInBoard(chr, letter)
-        
-        gameStateInfo.displayed++
-        gameStateInfo.showLetterCounter++
-
-        updateProgressBar()
-
-        if(!isSettingUp) {
-            clearShowLetterTimeout()
-            window.showLetterTimer = setTimeout(() => showLetter(), LETTER_TIMER)
-        }
+    const chr = phrazeInfo.pattern.indexOf(gameStateInfo.showLetterCounter++)
+    if(chr == -1) { 
+        completeGame() 
+        return
     }
-    else {
-        gameStateInfo.showLetterCounter++
-        showLetter(isSettingUp)
+      
+    const letter = phrazeInfo.phraseLetters.charAt(chr)
+    const tempWrd = phrazeInfo.phraseLetters.split("")
+    tempWrd[chr] = tempWrd[chr].toLowerCase()
+    phrazeInfo.phraseLetters = tempWrd.join("")
+    showLetterInBoard(chr, letter)
+    
+    gameStateInfo.displayed++
+
+    updateProgressBar()
+
+    if(!isSettingUp) {
+        clearShowLetterTimeout()
+        window.showLetterTimer = setTimeout(() => showLetter(), LETTER_TIMER)
     }
 
-    if ((gameStateInfo.displayed == phrazeInfo.letterCount && !isSettingUp) || isProgressInMax()) {
+    if ((gameStateInfo.showLetterCounter == phrazeInfo.letterCount && !isSettingUp) || isProgressInMax()) {
         completeGame()
     }
 

@@ -40,7 +40,6 @@ var gameStateInfo = {
   answers: []
 };
 var todaysDate = new Date();
-var pattern = [['D', 'L', 'Z', 'F', 'E', 'K', 'B', 'O', 'P', 'V', 'T', 'G', 'S', 'A', 'C', 'U', 'N', 'I', 'H', 'R', 'Y', 'J', 'M', 'X', 'Q', 'W'], ['H', 'M', 'E', 'D', 'J', 'O', 'N', 'R', 'X', 'K', 'U', 'Y', 'V', 'S', 'B', 'W', 'F', 'T', 'A', 'P', 'Q', 'L', 'I', 'Z', 'C', 'G'], ['Z', 'M', 'K', 'N', 'X', 'G', 'U', 'S', 'E', 'R', 'B', 'V', 'A', 'P', 'T', 'I', 'C', 'F', 'D', 'W', 'L', 'O', 'J', 'Y', 'H', 'Q'], ['N', 'X', 'B', 'R', 'Y', 'T', 'L', 'I', 'S', 'P', 'E', 'C', 'V', 'J', 'H', 'Z', 'A', 'G', 'W', 'F', 'U', 'M', 'O', 'K', 'D', 'Q'], ['I', 'N', 'F', 'Q', 'C', 'U', 'R', 'O', 'D', 'H', 'A', 'Z', 'L', 'K', 'V', 'J', 'S', 'M', 'G', 'P', 'Y', 'X', 'T', 'B', 'E', 'W'], ['F', 'Q', 'V', 'H', 'K', 'Y', 'C', 'J', 'X', 'Z', 'M', 'R', 'W', 'E', 'N', 'S', 'P', 'I', 'B', 'U', 'O', 'A', 'G', 'D', 'T', 'L'], ['W', 'G', 'Y', 'U', 'M', 'N', 'H', 'I', 'K', 'Z', 'O', 'R', 'B', 'Q', 'C', 'P', 'J', 'F', 'S', 'T', 'L', 'A', 'X', 'E', 'D', 'V']];
 var items = {
   LAST_PLAYED_DEP: "last-played-date",
   LAST_PLAYED_PHRAZE: "last-played-phraze",
@@ -96,7 +95,7 @@ $(function () {
 /* get phrases from json file */
 
 var getPhrases = function getPhrases(cb) {
-  $.getJSON("./phrazes-cat.json", function (data) {
+  $.getJSON("./data/pdata.json", function (data) {
     cb(data.phrazes);
   }).fail(function () {
     console.log("An error has occurred.");
@@ -104,7 +103,8 @@ var getPhrases = function getPhrases(cb) {
 };
 
 var setupPhrazeInfo = function setupPhrazeInfo(phrase) {
-  phrazeInfo.pattern = pattern[todaysDate.getDay()];
+  //phrazeInfo.pattern = pattern[todaysDate.getDay()]
+  phrazeInfo.pattern = phrase.pattern;
   phrazeInfo.today = _objectSpread(_objectSpread({}, phrase), {}, {
     phraze: phrase.phraze.toUpperCase()
   });
@@ -500,35 +500,30 @@ var completeGame = function completeGame() {
 
 
 var showLetter = function showLetter(isSettingUp) {
-  var letter = phrazeInfo.pattern[gameStateInfo.showLetterCounter % phrazeInfo.pattern.length];
-  var isOddCounter = gameStateInfo.displayed % 2 !== 0;
-  /* somewhat randomizing which instance of the letter is displayed */
-
-  var chr = -1;
-  if (isOddCounter) chr = phrazeInfo.phraseLetters.indexOf(letter);else chr = phrazeInfo.phraseLetters.lastIndexOf(letter);
   if (!isSettingUp) setGameCounter();
+  var chr = phrazeInfo.pattern.indexOf(gameStateInfo.showLetterCounter++);
 
-  if (chr != -1) {
-    var tempWrd = phrazeInfo.phraseLetters.split("");
-    tempWrd[chr] = tempWrd[chr].toLowerCase();
-    phrazeInfo.phraseLetters = tempWrd.join("");
-    showLetterInBoard(chr, letter);
-    gameStateInfo.displayed++;
-    gameStateInfo.showLetterCounter++;
-    updateProgressBar();
-
-    if (!isSettingUp) {
-      clearShowLetterTimeout();
-      window.showLetterTimer = setTimeout(function () {
-        return showLetter();
-      }, LETTER_TIMER);
-    }
-  } else {
-    gameStateInfo.showLetterCounter++;
-    showLetter(isSettingUp);
+  if (chr == -1) {
+    completeGame();
+    return;
   }
 
-  if (gameStateInfo.displayed == phrazeInfo.letterCount && !isSettingUp || isProgressInMax()) {
+  var letter = phrazeInfo.phraseLetters.charAt(chr);
+  var tempWrd = phrazeInfo.phraseLetters.split("");
+  tempWrd[chr] = tempWrd[chr].toLowerCase();
+  phrazeInfo.phraseLetters = tempWrd.join("");
+  showLetterInBoard(chr, letter);
+  gameStateInfo.displayed++;
+  updateProgressBar();
+
+  if (!isSettingUp) {
+    clearShowLetterTimeout();
+    window.showLetterTimer = setTimeout(function () {
+      return showLetter();
+    }, LETTER_TIMER);
+  }
+
+  if (gameStateInfo.showLetterCounter == phrazeInfo.letterCount && !isSettingUp || isProgressInMax()) {
     completeGame();
   }
 };
