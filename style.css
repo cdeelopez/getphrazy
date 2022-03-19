@@ -556,7 +556,7 @@ header.popup-header .game-info {
 .main-nav .menu-icon {
     color: white;
 }
-.main-nav ul {
+.main-nav .nav-list {
     position: absolute;
     width: 200px;
     padding: 16px;
@@ -572,9 +572,8 @@ header.popup-header .game-info {
     visibility: hidden;
     transition: all 0.2s ease-in-out, visibility 0s ease-in-out 0.2s;
     transform-origin: top left;
-
 }
-.main-nav ul.show {
+.main-nav .nav-list.show {
     transform: scale(1);
     opacity: 1;
     visibility: visible;
@@ -616,19 +615,23 @@ header.popup-header .game-info {
 .main-nav .word a {
     color: #003314;
 }
-.main-nav .email {
+.main-nav .email i {
+    padding: 8px 4px;
+}
+.main-nav .contact {
     position: absolute;
     bottom: 0;
     left: 50%;
     transform: translate(-50%, 0);
-    font-size: .8em;
-    color: black;
+    color: lightgray;
     display: flex;
     align-items: center;
-    text-decoration: none;
 }
-.main-nav .email i {
-    padding: 8px 4px;
+.main-nav .contact a {
+    text-decoration: none;
+    color: black;
+    display: inline-block;
+    padding: 0 20px;
 }
 @keyframes zoomin {
     from {

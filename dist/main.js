@@ -471,6 +471,8 @@ var displayEndPopup = function displayEndPopup(grade) {
   $(".bottom-bar .share").show();
 };
 
+var test = function test() {};
+
 var completeGame = function completeGame() {
   var grade, pct;
   if (gameStateInfo.gameCompleted) return;
@@ -727,7 +729,7 @@ var displayInstructions = function displayInstructions() {
 };
 
 var toggleMenu = function toggleMenu() {
-  $(".main-nav ul").toggleClass("show");
+  $(".main-nav .nav-list").toggleClass("show");
   sendEvent(actions.MENU_CLICK);
 };
 

@@ -703,7 +703,7 @@ const displayInstructions = () => {
 }
 
 const toggleMenu = () => {
-    $(".main-nav ul").toggleClass("show")
+    $(".main-nav .nav-list").toggleClass("show")
     sendEvent(actions.MENU_CLICK)
 }
 
