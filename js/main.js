@@ -76,6 +76,8 @@ $(function() {
         setupPhrazeInfo(phrases[todaysDayInYear() % phrases.length])
         startGame()
     })
+
+    
 })
 
 /* get phrases from json file */
@@ -448,7 +450,7 @@ const displayEndPopup = (grade) => {
     $(".game-end-popup").addClass("show")
     $(".bottom-bar .share").show()
 }
-const test = () => {}
+
 const completeGame = () => {
     let grade, pct
     if(gameStateInfo.gameCompleted) return
@@ -711,6 +713,44 @@ const checkForOpenMenu = (e) => {
     if(!$(e.target).hasClass("nav-list") && !$(e.target).parents(".nav-list").length && !$(e.target).hasClass("menu-icon")) {
         $(".main-nav ul").removeClass("show")
     }
+}
+
+const buildShareContent = () => {
+    const boardHtml = $(".guessbox").clone()
+     $(boardHtml).find("h2").text(phrazeInfo.today.category).addClass("show-no-anim")
+     $(boardHtml).find("span.show-letter").html("<i class='fa fa-solid fa-eye-slash'></i>")
+     $(boardHtml).find("span input.wrong-letter").each((i, val) => {
+         $(val).parent().html("<i class='fa fa-solid fa-xmark'></i>").addClass("wrong-letter")
+     })
+     $(boardHtml).find("span input.correct-letter").each((i, val) => {
+        $(val).parent().html("<i class='fa fa-solid fa-check'></i>").addClass("correct-letter")
+    })
+    $(".popup-share .phraze-number").text(`(#${todaysDayInYear()})`)
+    $(".popup-share h2.grade").addClass(gameStateInfo.finalGrade)
+    $(".popup-share .board-state").html(`<div class="guessbox">${boardHtml.html()}</div>`)
+}
+
+const shareScreenshot = async() => {
+    if (!("share" in navigator)) return
+    const canvas = await html2canvas($(".popup-share .content").get(0))
+    canvas.toBlob(async function (blob) {
+        const files = [new File([blob], 'image.png', { type: blob.type })]
+        const shareData = {
+            title: "Get Phrazy",
+            files
+        }
+        if (navigator.share) {
+          try {
+            await navigator.share(shareData);
+          } catch (err) {
+            if (err.name !== 'AbortError') {
+              console.error(err.name, err.message);      
+            }
+          }
+        } else {
+          console.warn('Sharing not supported', shareData);            
+        }
+    })
 }
 
 const addEventListeners = () => {

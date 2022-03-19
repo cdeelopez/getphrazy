@@ -1,5 +1,9 @@
 "use strict";
 
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
 
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -736,6 +740,110 @@ var checkForOpenMenu = function checkForOpenMenu(e) {
     $(".main-nav ul").removeClass("show");
   }
 };
+
+var buildShareContent = function buildShareContent() {
+  var boardHtml = $(".guessbox").clone();
+  $(boardHtml).find("h2").text(phrazeInfo.today.category).addClass("show-no-anim");
+  $(boardHtml).find("span.show-letter").html("<i class='fa fa-solid fa-eye-slash'></i>");
+  $(boardHtml).find("span input.wrong-letter").each(function (i, val) {
+    $(val).parent().html("<i class='fa fa-solid fa-xmark'></i>").addClass("wrong-letter");
+  });
+  $(boardHtml).find("span input.correct-letter").each(function (i, val) {
+    $(val).parent().html("<i class='fa fa-solid fa-check'></i>").addClass("correct-letter");
+  });
+  $(".popup-share .phraze-number").text("(#".concat(todaysDayInYear(), ")"));
+  $(".popup-share h2.grade").addClass(gameStateInfo.finalGrade);
+  $(".popup-share .board-state").html("<div class=\"guessbox\">".concat(boardHtml.html(), "</div>"));
+};
+
+var shareScreenshot = /*#__PURE__*/function () {
+  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+    var canvas;
+    return regeneratorRuntime.wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            if ("share" in navigator) {
+              _context2.next = 2;
+              break;
+            }
+
+            return _context2.abrupt("return");
+
+          case 2:
+            _context2.next = 4;
+            return html2canvas($(".popup-share .content").get(0));
+
+          case 4:
+            canvas = _context2.sent;
+            canvas.toBlob( /*#__PURE__*/function () {
+              var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(blob) {
+                var files, shareData;
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                  while (1) {
+                    switch (_context.prev = _context.next) {
+                      case 0:
+                        files = [new File([blob], 'image.png', {
+                          type: blob.type
+                        })];
+                        shareData = {
+                          title: "Get Phrazy",
+                          files: files
+                        };
+
+                        if (!navigator.share) {
+                          _context.next = 13;
+                          break;
+                        }
+
+                        _context.prev = 3;
+                        _context.next = 6;
+                        return navigator.share(shareData);
+
+                      case 6:
+                        _context.next = 11;
+                        break;
+
+                      case 8:
+                        _context.prev = 8;
+                        _context.t0 = _context["catch"](3);
+
+                        if (_context.t0.name !== 'AbortError') {
+                          console.error(_context.t0.name, _context.t0.message);
+                        }
+
+                      case 11:
+                        _context.next = 14;
+                        break;
+
+                      case 13:
+                        console.warn('Sharing not supported', shareData);
+
+                      case 14:
+                      case "end":
+                        return _context.stop();
+                    }
+                  }
+                }, _callee, null, [[3, 8]]);
+              }));
+
+              return function (_x) {
+                return _ref2.apply(this, arguments);
+              };
+            }());
+
+          case 6:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+
+  return function shareScreenshot() {
+    return _ref.apply(this, arguments);
+  };
+}();
 
 var addEventListeners = function addEventListeners() {
   $(".guess-now").on("click", onGuessNowClick);
